@@ -1,0 +1,8 @@
+{
+    "/api/topics": "/topics",
+    "/api/kataloge": "/catalogs",
+    "/api/kataloge/:id": "/catalogs/:id",
+    "/api/fragen": "/questions",
+    "/api/fragen/:id": "/questions/:id"
+  }
+  

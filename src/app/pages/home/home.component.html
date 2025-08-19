@@ -1,0 +1,71 @@
+<div class="home-container">
+  <div class="hero-section">
+    <h1>Lern- und Prüf-Simulator</h1>
+    <p class="subtitle">Bereite dich optimal auf deine LPIC-1 Zertifizierung vor</p>
+  </div>
+
+  <!-- Topic Selection Modal -->
+  <div *ngIf="showTopicSelection" class="topic-selection-modal">
+    <div class="modal-content">
+      <h2>Wähle dein Lerngebiet</h2>
+      <p>Welchen Bereich möchtest du lernen?</p>
+      
+      <div class="topic-options">
+        <div class="topic-card" (click)="selectTopic('101')">
+          <div class="topic-icon">🐧</div>
+          <h3>LPIC-101</h3>
+          <p>Systemarchitektur, Linux-Installation und Paketverwaltung</p>
+          <span class="topic-count">4 Lernblöcke</span>
+        </div>
+        
+        <div class="topic-card" (click)="selectTopic('102')">
+          <div class="topic-icon">⚙️</div>
+          <h3>LPIC-102</h3>
+          <p>Shells, Scripting und Datenverwaltung</p>
+          <span class="topic-count">7 Lernblöcke</span>
+        </div>
+        
+        <div class="topic-card" (click)="selectTopic('all')">
+          <div class="topic-icon">📚</div>
+          <h3>Alle Themen</h3>
+          <p>Kompletter LPIC-1 Stoff</p>
+          <span class="topic-count">11 Lernblöcke</span>
+        </div>
+      </div>
+      
+      <button class="back-button" (click)="goBack()">← Zurück</button>
+    </div>
+  </div>
+
+  <div class="mode-selection">
+    <div class="mode-card learning-mode" (click)="startLearning()">
+      <div class="mode-icon">📚</div>
+      <h2>Lernmodus</h2>
+      <p>Lerne in deinem eigenen Tempo mit sofortigem Feedback und detaillierten Erklärungen</p>
+      <div class="mode-features">
+        <span>✓ Kein Zeitlimit</span>
+        <span>✓ Sofortige Lösungen</span>
+        <span>✓ Detaillierte Erklärungen</span>
+      </div>
+      <button class="mode-button learning-btn">Jetzt lernen</button>
+    </div>
+
+    <div class="mode-card simulation-mode" (click)="startSimulation()">
+      <div class="mode-icon">⏱️</div>
+      <h2>Prüfungssimulation</h2>
+      <p>Übe unter realistischen Bedingungen mit Zeitvorgabe und abschließender Auswertung</p>
+      <div class="mode-features">
+        <span>✓ Zeitgesteuert</span>
+        <span>✓ Realistische Bedingungen</span>
+        <span>✓ Detaillierte Auswertung</span>
+      </div>
+      <button class="mode-button simulation-btn">Simulation starten</button>
+    </div>
+  </div>
+
+  <div class="info-section">
+    <h3>Über LPIC-1</h3>
+    <p>Die LPIC-1 Zertifizierung bestätigt grundlegende Linux-Administrationskenntnisse. 
+    Unser Simulator deckt alle relevanten Themenbereiche ab und hilft dir, dich optimal vorzubereiten.</p>
+  </div>
+</div>

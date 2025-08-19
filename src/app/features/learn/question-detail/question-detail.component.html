@@ -1,0 +1,27 @@
+<div class="question-detail-container">
+  <div class="header">
+    <button class="back-button" (click)="goBack()">← Zurück</button>
+    <h1>Frage {{ currentIndex + 1 }}</h1>
+    <button class="home-button" (click)="goHome()">🏠 Startseite</button>
+  </div>
+
+  <div class="content">
+    <div *ngIf="loading" class="loading">
+      <div class="spinner"></div>
+      <p>Lade Frage...</p>
+    </div>
+
+    <div *ngIf="error" class="error">
+      <p>{{ error }}</p>
+      <button (click)="goBack()" class="retry-button">Zurück zum Katalog</button>
+    </div>
+
+    <div *ngIf="!loading && !error" class="question-content">
+      <div class="placeholder">
+        <h2>Fragenbearbeitung</h2>
+        <p>Diese Komponente wird in der nächsten Phase implementiert.</p>
+        <p>Hier werden Fragen angezeigt und Antworten können eingegeben werden.</p>
+      </div>
+    </div>
+  </div>
+</div>

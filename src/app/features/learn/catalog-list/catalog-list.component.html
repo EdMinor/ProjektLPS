@@ -1,0 +1,60 @@
+<div class="catalog-list-container">
+  <div class="header">
+    <button class="back-button" (click)="goBack()">← Zurück</button>
+    <h1>Lernkataloge</h1>
+    
+    <!-- Topic Filter Display -->
+    <div *ngIf="selectedTopic" class="topic-filter">
+      <div class="filter-info">
+        <span class="filter-label">Gefiltert nach:</span>
+        <span class="filter-value">
+          {{ selectedTopic === '101' ? 'LPIC-101' : selectedTopic === '102' ? 'LPIC-102' : 'Alle Themen' }}
+        </span>
+        <button class="clear-filter-btn" (click)="clearFilter()">Filter löschen</button>
+      </div>
+      <p>{{ catalogs.length }} Katalog{{ catalogs.length !== 1 ? 'e' : '' }} verfügbar</p>
+    </div>
+    
+    <p *ngIf="!selectedTopic">Wähle einen Katalog aus, um mit dem Lernen zu beginnen</p>
+  </div>
+
+  <div class="content">
+    <div *ngIf="loading" class="loading">
+      <div class="spinner"></div>
+      <p>Lade Kataloge...</p>
+    </div>
+
+    <div *ngIf="error" class="error">
+      <p>{{ error }}</p>
+      <button (click)="loadCatalogs()" class="retry-button">Erneut versuchen</button>
+    </div>
+
+    <div *ngIf="!loading && !error" class="catalogs-grid">
+      <div 
+        *ngFor="let catalog of catalogs" 
+        class="catalog-card"
+        (click)="selectCatalog(catalog)"
+      >
+        <div class="catalog-header">
+          <h3>{{ catalog.title }}</h3>
+          <span class="catalog-code">{{ catalog.code }}</span>
+        </div>
+        <div class="catalog-info">
+          <p class="question-count">{{ catalog.questionCount }} Fragen</p>
+          <p class="topic">{{ getTopicName(catalog.topicId) }}</p>
+        </div>
+        <div class="catalog-actions">
+          <button class="start-button">Jetzt starten</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="!loading && !error && catalogs.length === 0" class="empty-state">
+      <div class="empty-icon">📚</div>
+      <h3>Keine Kataloge gefunden</h3>
+      <p>Für den ausgewählten Filter wurden keine Kataloge gefunden.</p>
+      <button class="clear-filter-btn" (click)="clearFilter()">Alle Kataloge anzeigen</button>
+    </div>
+  </div>
+</div>
