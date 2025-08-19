@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, catchError, of } from 'rxjs';
+import { Observable, catchError, of, map } from 'rxjs';
 import { Topic, Catalog, Question } from '../models';
 
 @Injectable({
@@ -31,12 +31,24 @@ export class ApiService {
   // Questions
   getQuestionsByCatalog(catalogId: number): Observable<Question[]> {
     return this.http.get<Question[]>(`${this.baseUrl}/fragen`)
-      .pipe(catchError(this.handleError));
+      .pipe(
+        map(questions => questions.filter(q => q.catalogId === catalogId)),
+        catchError(this.handleError)
+      );
   }
 
   getQuestionById(id: number): Observable<Question> {
-    return this.http.get<Question>(`${this.baseUrl}/fragen/${id}`)
-      .pipe(catchError(this.handleError));
+    return this.http.get<Question[]>(`${this.baseUrl}/fragen`)
+      .pipe(
+        map(questions => questions.find(q => q.id === id)),
+        map(question => {
+          if (!question) {
+            throw new Error(`Question with id ${id} not found`);
+          }
+          return question;
+        }),
+        catchError(this.handleError)
+      );
   }
 
   private handleError(error: any): Observable<never> {

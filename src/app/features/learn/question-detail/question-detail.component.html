@@ -1,7 +1,15 @@
 <div class="question-detail-container">
   <div class="header">
     <button class="back-button" (click)="goBack()">← Zurück</button>
-    <h1>Frage {{ currentIndex + 1 }}</h1>
+    
+    <!-- Progress and Navigation -->
+    <div class="question-navigation">
+      <h1>Frage {{ questionNumber }} von {{ totalQuestions }}</h1>
+      <div class="catalog-info" *ngIf="catalog">
+        <span class="catalog-title">{{ catalog.title }}</span>
+      </div>
+    </div>
+    
     <button class="home-button" (click)="goHome()">🏠 Startseite</button>
   </div>
 
@@ -13,15 +21,105 @@
 
     <div *ngIf="error" class="error">
       <p>{{ error }}</p>
-      <button (click)="goBack()" class="retry-button">Zurück zum Katalog</button>
+      <button (click)="loadCatalogAndQuestions()" class="retry-button">Erneut versuchen</button>
     </div>
 
-    <div *ngIf="!loading && !error" class="question-content">
-      <div class="placeholder">
-        <h2>Fragenbearbeitung</h2>
-        <p>Diese Komponente wird in der nächsten Phase implementiert.</p>
-        <p>Hier werden Fragen angezeigt und Antworten können eingegeben werden.</p>
+    <div *ngIf="!loading && !error && question" class="question-content">
+      <!-- Question Header -->
+      <div class="question-header">
+        <div class="question-type-badge">
+          <span *ngIf="question.type === 'single'">Single Choice</span>
+          <span *ngIf="question.type === 'multi'">Multiple Choice</span>
+          <span *ngIf="question.type === 'fill'">Fill-in</span>
+        </div>
       </div>
+
+      <!-- Question Text -->
+      <div class="question-text">
+        <h2>{{ question.text }}</h2>
+      </div>
+
+      <!-- Question Options (for single/multi choice) -->
+      <div *ngIf="question.type === 'single' || question.type === 'multi'" class="question-options">
+        <div class="options-list">
+          <div 
+            *ngFor="let option of question.options; let i = index" 
+            class="option-item"
+            [class.selected]="isOptionSelected(option.id)"
+            (click)="question.type === 'single' ? selectSingleAnswer(option.id) : toggleMultipleAnswer(option.id)"
+          >
+            <div class="option-content">
+              <!-- Radio Button for Single Choice -->
+              <div *ngIf="question.type === 'single'" class="radio-button">
+                <div class="radio-circle" [class.checked]="isOptionSelected(option.id)"></div>
+              </div>
+              
+              <!-- Checkbox for Multiple Choice -->
+              <div *ngIf="question.type === 'multi'" class="checkbox">
+                <div class="checkbox-square" [class.checked]="isOptionSelected(option.id)"></div>
+              </div>
+              
+              <span class="option-label">{{ option.id }}.</span>
+              <span class="option-text">{{ option.text }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Fill-in Input -->
+      <div *ngIf="question.type === 'fill'" class="fill-input">
+        <div class="input-container">
+          <label for="fillInAnswer" class="input-label">Deine Antwort:</label>
+          <input 
+            type="text" 
+            id="fillInAnswer"
+            class="text-input"
+            placeholder="Gib deine Antwort hier ein..."
+            [(ngModel)]="fillInAnswer"
+            (input)="updateFillInAnswer($any($event.target).value)"
+            autocomplete="off"
+          />
+        </div>
+      </div>
+
+      <!-- Answer Summary -->
+      <div class="answer-summary" *ngIf="hasAnswered">
+        <div class="summary-content">
+          <span class="summary-label">Deine Antwort:</span>
+          <span class="summary-value">{{ answerSummary }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Navigation Footer -->
+  <div *ngIf="!loading && !error && question" class="navigation-footer">
+    <div class="nav-buttons">
+      <button 
+        class="nav-button prev-button" 
+        [disabled]="!canGoPrevious"
+        (click)="goToPrevious()"
+      >
+        ← Vorherige
+      </button>
+      
+      <div class="question-counter">
+        {{ questionNumber }} / {{ totalQuestions }}
+      </div>
+      
+      <button 
+        class="nav-button next-button" 
+        [disabled]="!canGoNext || !canProceed"
+        (click)="goToNext()"
+        [class.disabled]="!canProceed"
+      >
+        Nächste →
+      </button>
+    </div>
+    
+    <!-- Answer Validation Message -->
+    <div *ngIf="!canProceed && hasAnswered" class="validation-message">
+      <p>Bitte gib eine gültige Antwort ein, bevor du fortfährst.</p>
     </div>
   </div>
 </div>
