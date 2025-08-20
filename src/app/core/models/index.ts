@@ -24,6 +24,9 @@ export interface Question {
   text: string;
   options: QuestionOption[];
   solution?: string;
+  explanation?: string;
+  correctAnswer?: string; // For single choice questions
+  correctAnswers?: string[]; // For multiple choice and fill-in questions
 }
 
 export interface ApiResponse<T> {

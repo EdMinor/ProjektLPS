@@ -1,31 +1,43 @@
 <div class="question-detail-container">
   <div class="header">
     <button class="back-button" (click)="goBack()">← Zurück</button>
-    
-    <!-- Progress and Navigation -->
     <div class="question-navigation">
       <h1>Frage {{ questionNumber }} von {{ totalQuestions }}</h1>
       <div class="catalog-info" *ngIf="catalog">
         <span class="catalog-title">{{ catalog.title }}</span>
       </div>
     </div>
-    
     <button class="home-button" (click)="goHome()">🏠 Startseite</button>
   </div>
 
+  <!-- Progress Bar -->
+  <div class="progress-container" *ngIf="!loading && !error">
+    <div class="progress-bar">
+      <div class="progress-fill" [style.width.%]="getProgressPercentage()"></div>
+    </div>
+    <div class="progress-text">
+      {{ totalScore }} von {{ totalQuestions }} Fragen beantwortet
+      <span class="score">({{ score }} richtig)</span>
+    </div>
+  </div>
+
   <div class="content">
-    <div *ngIf="loading" class="loading">
-      <div class="spinner"></div>
+    <!-- Loading State -->
+    <div *ngIf="loading" class="loading-state">
+      <div class="loading-spinner"></div>
       <p>Lade Frage...</p>
     </div>
 
-    <div *ngIf="error" class="error">
+    <!-- Error State -->
+    <div *ngIf="error" class="error-state">
+      <div class="error-icon">❌</div>
+      <h3>Fehler beim Laden</h3>
       <p>{{ error }}</p>
-      <button (click)="loadCatalogAndQuestions()" class="retry-button">Erneut versuchen</button>
+      <button class="retry-button" (click)="loadCatalogAndQuestions()">Erneut versuchen</button>
     </div>
 
+    <!-- Question Content -->
     <div *ngIf="!loading && !error && question" class="question-content">
-      <!-- Question Header -->
       <div class="question-header">
         <div class="question-type-badge">
           <span *ngIf="question.type === 'single'">Single Choice</span>
@@ -34,31 +46,29 @@
         </div>
       </div>
 
-      <!-- Question Text -->
       <div class="question-text">
         <h2>{{ question.text }}</h2>
       </div>
 
-      <!-- Question Options (for single/multi choice) -->
+      <!-- Answer Options (always show, with status) -->
       <div *ngIf="question.type === 'single' || question.type === 'multi'" class="question-options">
         <div class="options-list">
           <div 
             *ngFor="let option of question.options; let i = index" 
             class="option-item"
-            [class.selected]="isOptionSelected(option.id)"
-            (click)="question.type === 'single' ? selectSingleAnswer(option.id) : toggleMultipleAnswer(option.id)"
+            [class.selected]="getOptionStatus(option.id) === 'selected'"
+            [class.correct]="getOptionStatus(option.id) === 'correct'"
+            [class.incorrect]="getOptionStatus(option.id) === 'incorrect'"
+            [class.disabled]="isEvaluated"
+            (click)="!isEvaluated && (question.type === 'single' ? selectSingleAnswer(option.id) : toggleMultipleAnswer(option.id))"
           >
             <div class="option-content">
-              <!-- Radio Button for Single Choice -->
               <div *ngIf="question.type === 'single'" class="radio-button">
                 <div class="radio-circle" [class.checked]="isOptionSelected(option.id)"></div>
               </div>
-              
-              <!-- Checkbox for Multiple Choice -->
               <div *ngIf="question.type === 'multi'" class="checkbox">
                 <div class="checkbox-square" [class.checked]="isOptionSelected(option.id)"></div>
               </div>
-              
               <span class="option-label">{{ option.id }}.</span>
               <span class="option-text">{{ option.text }}</span>
             </div>
@@ -66,7 +76,7 @@
         </div>
       </div>
 
-      <!-- Fill-in Input -->
+      <!-- Fill-in Input (with confirmation button) -->
       <div *ngIf="question.type === 'fill'" class="fill-input">
         <div class="input-container">
           <label for="fillInAnswer" class="input-label">Deine Antwort:</label>
@@ -76,17 +86,39 @@
             class="text-input"
             placeholder="Gib deine Antwort hier ein..."
             [(ngModel)]="fillInAnswer"
-            (input)="updateFillInAnswer($any($event.target).value)"
+            (input)="!isEvaluated && updateFillInAnswer($any($event.target).value)"
+            [disabled]="isEvaluated"
             autocomplete="off"
           />
+          <button 
+            *ngIf="hasAnswered && !isEvaluated"
+            class="confirm-button"
+            (click)="confirmFillInAnswer()"
+          >
+            ✅ Antwort bestätigen
+          </button>
         </div>
       </div>
 
-      <!-- Answer Summary -->
-      <div class="answer-summary" *ngIf="hasAnswered">
+      <!-- Answer Summary (show if not evaluated) -->
+      <div class="answer-summary" *ngIf="hasAnswered && !isEvaluated">
         <div class="summary-content">
           <span class="summary-label">Deine Antwort:</span>
           <span class="summary-value">{{ answerSummary }}</span>
+        </div>
+      </div>
+
+      <!-- Solution Display (show after evaluation) -->
+      <div *ngIf="isEvaluated" class="solution-section">
+        <h4>Lösung:</h4>
+        <div class="solution-content">
+          <p><strong>Korrekte Antwort:</strong> {{ correctAnswerText }}</p>
+          <p *ngIf="question.explanation" class="explanation">
+            <strong>Erklärung:</strong> {{ question.explanation }}
+          </p>
+          <p *ngIf="!question.explanation" class="no-explanation">
+            Keine Erklärung verfügbar.
+          </p>
         </div>
       </div>
     </div>
@@ -99,27 +131,85 @@
         class="nav-button prev-button" 
         [disabled]="!canGoPrevious"
         (click)="goToPrevious()"
-      >
-        ← Vorherige
-      </button>
+      >← Vorherige</button>
       
-      <div class="question-counter">
-        {{ questionNumber }} / {{ totalQuestions }}
-      </div>
+      <div class="question-counter">{{ questionNumber }} / {{ totalQuestions }}</div>
       
       <button 
         class="nav-button next-button" 
-        [disabled]="!canGoNext || !canProceed"
+        [disabled]="!canGoNext || !isEvaluated"
         (click)="goToNext()"
-        [class.disabled]="!canProceed"
-      >
-        Nächste →
-      </button>
+        [class.disabled]="!canGoNext || !isEvaluated"
+      >Nächste →</button>
     </div>
-    
-    <!-- Answer Validation Message -->
-    <div *ngIf="!canProceed && hasAnswered" class="validation-message">
-      <p>Bitte gib eine gültige Antwort ein, bevor du fortfährst.</p>
+
+    <!-- Evaluation Required Message -->
+    <div *ngIf="hasAnswered && !isEvaluated" class="evaluation-required">
+      <p *ngIf="question?.type === 'fill'">Klicke "Antwort bestätigen" um deine Antwort zu bewerten.</p>
+      <p *ngIf="question?.type === 'multi'">Wähle alle erforderlichen Antworten aus.</p>
+      <p *ngIf="question?.type === 'single'">Antwort wird bewertet...</p>
+    </div>
+  </div>
+
+  <!-- Results Button (show when catalog completed and popup closed) -->
+  <div *ngIf="!showResultsPopup && isCatalogCompleted()" class="results-button-container">
+    <button class="results-button" (click)="showResultsPopup = true">
+      📊 Ergebnisse anzeigen
+    </button>
+  </div>
+
+  <!-- Results Popup -->
+  <div *ngIf="showResultsPopup" class="results-popup-overlay">
+    <div class="results-popup">
+      <div class="popup-header">
+        <h2>🎉 Katalog abgeschlossen!</h2>
+        <button class="close-button" (click)="closeResultsPopup()">×</button>
+      </div>
+      
+      <div class="popup-content">
+        <div class="results-summary">
+          <div class="final-score">
+            <div class="score-circle" [class.excellent]="getProgressPercentage() >= 90" 
+                 [class.good]="getProgressPercentage() >= 70 && getProgressPercentage() < 90"
+                 [class.average]="getProgressPercentage() >= 50 && getProgressPercentage() < 70"
+                 [class.poor]="getProgressPercentage() < 50">
+              {{ Math.round(getProgressPercentage()) }}%
+            </div>
+            <h3>Dein Ergebnis</h3>
+          </div>
+          
+          <div class="score-details">
+            <div class="score-item">
+              <span class="label">Fragen beantwortet:</span>
+              <span class="value">{{ totalScore }} / {{ totalQuestions }}</span>
+            </div>
+            <div class="score-item">
+              <span class="label">Richtig:</span>
+              <span class="value correct">{{ score }}</span>
+            </div>
+            <div class="score-item">
+              <span class="label">Falsch:</span>
+              <span class="value incorrect">{{ totalScore - score }}</span>
+            </div>
+          </div>
+          
+          <div class="performance-message">
+            <p *ngIf="getProgressPercentage() >= 90">🎯 Ausgezeichnet! Du beherrschst diesen Bereich perfekt!</p>
+            <p *ngIf="getProgressPercentage() >= 70 && getProgressPercentage() < 90">👍 Gut gemacht! Du hast eine solide Grundlage.</p>
+            <p *ngIf="getProgressPercentage() >= 50 && getProgressPercentage() < 70">📚 Nicht schlecht! Mit etwas Übung wirst du noch besser.</p>
+            <p *ngIf="getProgressPercentage() < 50">💪 Weiter üben! Jede Frage macht dich stärker.</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="popup-actions">
+        <button class="action-button secondary" (click)="closeResultsPopup()">
+          Schließen
+        </button>
+        <button class="action-button primary" (click)="restartCatalog()">
+          🔄 Erneut versuchen
+        </button>
+      </div>
     </div>
   </div>
 </div>

@@ -25,6 +25,19 @@ export class QuestionDetailComponent implements OnInit {
   selectedAnswers: string[] = [];
   fillInAnswer: string = '';
   hasAnswered: boolean = false;
+  
+  // Evaluation state
+  isEvaluated: boolean = false;
+  isCorrect: boolean = false;
+  score: number = 0;
+  totalScore: number = 0;
+  answeredQuestions: Map<number, { answers: string[], isCorrect: boolean, fillInAnswer?: string }> = new Map();
+  
+  // Results popup
+  showResultsPopup: boolean = false;
+  
+  // Math for template
+  Math = Math;
 
   constructor(
     private apiService: ApiService,
@@ -47,8 +60,6 @@ export class QuestionDetailComponent implements OnInit {
   loadCatalogAndQuestions(): void {
     this.loading = true;
     this.error = null;
-
-    // Load catalog first
     this.apiService.getCatalogById(this.catalogId!).subscribe({
       next: (catalog) => {
         this.catalog = catalog;
@@ -82,13 +93,13 @@ export class QuestionDetailComponent implements OnInit {
       this.loading = false;
       return;
     }
-
+    
     if (this.currentIndex >= this.questions.length) {
-      this.currentIndex = 0; // Reset to first question if index is out of bounds
+      this.currentIndex = 0;
     }
-
+    
     this.question = this.questions[this.currentIndex];
-    this.resetAnswerState();
+    this.restoreAnswerState();
     this.loading = false;
   }
 
@@ -96,16 +107,35 @@ export class QuestionDetailComponent implements OnInit {
     this.selectedAnswers = [];
     this.fillInAnswer = '';
     this.hasAnswered = false;
+    this.isEvaluated = false;
+    this.isCorrect = false;
   }
 
-  // Single Choice Answer Management
+  restoreAnswerState(): void {
+    const savedState = this.answeredQuestions.get(this.currentIndex);
+    if (savedState) {
+      this.selectedAnswers = [...savedState.answers];
+      this.fillInAnswer = savedState.fillInAnswer || '';
+      this.hasAnswered = true;
+      this.isEvaluated = true;
+      this.isCorrect = savedState.isCorrect;
+    } else {
+      this.resetAnswerState();
+    }
+  }
+
+  // Answer selection methods
   selectSingleAnswer(optionId: string): void {
+    if (this.isEvaluated) return; // Prevent changes after evaluation
+    
     this.selectedAnswers = [optionId];
     this.hasAnswered = true;
+    this.evaluateAnswer(); // Single choice is evaluated immediately
   }
 
-  // Multiple Choice Answer Management
   toggleMultipleAnswer(optionId: string): void {
+    if (this.isEvaluated) return; // Prevent changes after evaluation
+    
     const index = this.selectedAnswers.indexOf(optionId);
     if (index > -1) {
       this.selectedAnswers.splice(index, 1);
@@ -113,102 +143,249 @@ export class QuestionDetailComponent implements OnInit {
       this.selectedAnswers.push(optionId);
     }
     this.hasAnswered = this.selectedAnswers.length > 0;
+    
+    // For multiple choice, check if we have the right number of answers
+    if (this.question && this.question.type === 'multi' && this.question.correctAnswers) {
+      if (this.selectedAnswers.length === this.question.correctAnswers.length) {
+        this.evaluateAnswer();
+      }
+    }
   }
 
   isOptionSelected(optionId: string): boolean {
     return this.selectedAnswers.includes(optionId);
   }
 
-  // Fill-in Answer Management
   updateFillInAnswer(value: string): void {
+    if (this.isEvaluated) return; // Prevent changes after evaluation
+    
     this.fillInAnswer = value;
     this.hasAnswered = value.trim().length > 0;
+    // Don't evaluate immediately for fill-in
   }
 
-  // Navigation with Answer Validation
+  // Confirm fill-in answer
+  confirmFillInAnswer(): void {
+    if (this.hasAnswered) {
+      this.evaluateAnswer();
+    }
+  }
+
+  // Answer evaluation
+  evaluateAnswer(): void {
+    if (!this.question || !this.hasAnswered) return;
+
+    this.isEvaluated = true;
+    
+    switch (this.question.type) {
+      case 'single':
+        this.isCorrect = this.selectedAnswers.length === 1 && 
+                        this.selectedAnswers[0] === this.question.correctAnswer;
+        break;
+      case 'multi':
+        if (this.question.correctAnswers && this.question.correctAnswers.length > 0) {
+          const correctSet = new Set(this.question.correctAnswers);
+          const selectedSet = new Set(this.selectedAnswers);
+          this.isCorrect = correctSet.size === selectedSet.size && 
+                          [...correctSet].every(answer => selectedSet.has(answer));
+        } else {
+          this.isCorrect = false;
+        }
+        break;
+      case 'fill':
+        if (this.question.correctAnswers && this.question.correctAnswers.length > 0) {
+          this.isCorrect = this.question.correctAnswers.some(answer => 
+            answer.toLowerCase().trim() === this.fillInAnswer.toLowerCase().trim()
+          );
+        } else {
+          this.isCorrect = false;
+        }
+        break;
+      default:
+        this.isCorrect = false;
+    }
+
+    // Save the answer state
+    this.answeredQuestions.set(this.currentIndex, {
+      answers: [...this.selectedAnswers],
+      isCorrect: this.isCorrect,
+      fillInAnswer: this.fillInAnswer
+    });
+
+    // Update score only if correct
+    if (this.isCorrect) {
+      this.score += 1;
+    }
+    
+    // Update total score (number of answered questions)
+    this.totalScore = this.answeredQuestions.size;
+    
+    // Show results popup if this is the last question
+    if (this.currentIndex === this.questions.length - 1) {
+      setTimeout(() => {
+        this.showResultsPopup = true;
+      }, 1500); // Show after 1.5 seconds
+    }
+  }
+
+  // Navigation methods
   goToQuestion(index: number): void {
     if (index >= 0 && index < this.questions.length) {
       this.currentIndex = index;
       this.question = this.questions[index];
-      this.resetAnswerState();
+      this.restoreAnswerState();
       
-      // Update URL without navigation
       this.router.navigate([], {
         relativeTo: this.route,
         queryParams: { catalogId: this.catalogId },
-        fragment: index.toString()
+        fragment: `question-${index}`
       });
     }
   }
 
   goToPrevious(): void {
-    if (this.currentIndex > 0) {
+    if (this.canGoPrevious) {
       this.goToQuestion(this.currentIndex - 1);
     }
   }
 
   goToNext(): void {
-    if (this.canGoNext) {
+    if (this.canGoNext && this.isEvaluated) {
       this.goToQuestion(this.currentIndex + 1);
     }
   }
 
   goBack(): void {
-    if (this.catalogId) {
-      this.router.navigate(['/learn/catalogs', this.catalogId]);
-    } else {
-      this.router.navigate(['/learn/catalogs']);
-    }
+    this.router.navigate(['/learn/catalogs'], { 
+      queryParams: { topic: this.getTopicFromCatalog() } 
+    });
   }
 
   goHome(): void {
     this.router.navigate(['/home']);
   }
 
-  // Getters
-  get questionNumber(): number {
-    return this.currentIndex + 1;
+  // Results popup methods
+  closeResultsPopup(): void {
+    this.showResultsPopup = false;
   }
 
-  get totalQuestions(): number {
-    return this.questions.length;
+  restartCatalog(): void {
+    this.currentIndex = 0;
+    this.score = 0;
+    this.totalScore = 0;
+    this.answeredQuestions.clear();
+    this.showResultsPopup = false;
+    this.loadCurrentQuestion();
   }
 
-  get canGoPrevious(): boolean {
-    return this.currentIndex > 0;
+  // Helper methods
+  getTopicFromCatalog(): string | null {
+    if (!this.catalog) return null;
+    return this.catalog.topicId === 1 ? '101' : this.catalog.topicId === 2 ? '102' : null;
   }
 
-  get canGoNext(): boolean {
-    return this.currentIndex < this.questions.length - 1;
+  // Check if catalog is completed
+  isCatalogCompleted(): boolean {
+    return this.answeredQuestions.size === this.questions.length;
   }
 
-  get canProceed(): boolean {
-    if (!this.question) return false;
+  // Fixed score calculation: based on correct answers, not total answered
+  getProgressPercentage(): number {
+    return this.questions.length > 0 ? (this.score / this.questions.length) * 100 : 0;
+  }
+
+  // Check if option is correct/incorrect for visual feedback
+  isOptionCorrect(optionId: string): boolean {
+    if (!this.question || !this.isEvaluated) return false;
     
     switch (this.question.type) {
       case 'single':
-        return this.selectedAnswers.length === 1;
+        return optionId === this.question.correctAnswer;
       case 'multi':
-        return this.selectedAnswers.length > 0;
-      case 'fill':
-        return this.fillInAnswer.trim().length > 0;
+        return this.question.correctAnswers?.includes(optionId) || false;
       default:
         return false;
     }
   }
 
+  // Check if option is selected and correct/incorrect
+  getOptionStatus(optionId: string): 'correct' | 'incorrect' | 'selected' | 'none' {
+    if (!this.isEvaluated) {
+      return this.isOptionSelected(optionId) ? 'selected' : 'none';
+    }
+    
+    if (this.isOptionCorrect(optionId)) {
+      return 'correct';
+    } else if (this.isOptionSelected(optionId)) {
+      return 'incorrect';
+    }
+    
+    return 'none';
+  }
+
+  // Getters
+  get questionNumber(): number { 
+    return this.currentIndex + 1; 
+  }
+  
+  get totalQuestions(): number { 
+    return this.questions.length; 
+  }
+  
+  get canGoPrevious(): boolean { 
+    return this.currentIndex > 0; 
+  }
+  
+  get canGoNext(): boolean { 
+    return this.currentIndex < this.questions.length - 1; 
+  }
+
+  get canProceed(): boolean {
+    if (!this.question) return false;
+    switch (this.question.type) {
+      case 'single': return this.selectedAnswers.length === 1;
+      case 'multi': return this.selectedAnswers.length > 0;
+      case 'fill': return this.fillInAnswer.trim().length > 0;
+      default: return false;
+    }
+  }
+
   get answerSummary(): string {
+    if (!this.question) return '';
+    switch (this.question.type) {
+      case 'single': 
+        return this.selectedAnswers.length > 0 ? `Ausgewählt: ${this.selectedAnswers[0]}` : 'Keine Antwort ausgewählt';
+      case 'multi': 
+        return this.selectedAnswers.length > 0 ? `${this.selectedAnswers.length} Antwort(en) ausgewählt` : 'Keine Antworten ausgewählt';
+      case 'fill': 
+        return this.fillInAnswer.trim() ? `Eingegeben: "${this.fillInAnswer}"` : 'Keine Antwort eingegeben';
+      default: 
+        return '';
+    }
+  }
+
+  get showSolution(): boolean {
+    return this.isEvaluated && this.question !== null;
+  }
+
+  get correctAnswerText(): string {
     if (!this.question) return '';
     
     switch (this.question.type) {
       case 'single':
-        return this.selectedAnswers.length > 0 ? `Ausgewählt: ${this.selectedAnswers[0]}` : 'Keine Antwort ausgewählt';
+        return this.question.correctAnswer || 'Keine Lösung verfügbar';
       case 'multi':
-        return this.selectedAnswers.length > 0 ? `${this.selectedAnswers.length} Antwort(en) ausgewählt` : 'Keine Antworten ausgewählt';
+        return this.question.correctAnswers && this.question.correctAnswers.length > 0 
+          ? this.question.correctAnswers.join(', ') 
+          : 'Keine Lösung verfügbar';
       case 'fill':
-        return this.fillInAnswer.trim() ? `Eingegeben: "${this.fillInAnswer}"` : 'Keine Antwort eingegeben';
+        return this.question.correctAnswers && this.question.correctAnswers.length > 0 
+          ? this.question.correctAnswers.join(' oder ') 
+          : 'Keine Lösung verfügbar';
       default:
-        return '';
+        return 'Keine Lösung verfügbar';
     }
   }
 }
+
