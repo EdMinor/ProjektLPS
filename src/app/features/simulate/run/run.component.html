@@ -1,0 +1,319 @@
+<!-- Header -->
+<app-header [breadcrumbs]="breadcrumbs"></app-header>
+
+<!-- Main Content -->
+<div class="simulation-container">
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-state">
+    <div class="spinner"></div>
+    <p>Simulation wird geladen...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error" class="error-state">
+    <div class="error-icon">❌</div>
+    <h2>Fehler beim Laden der Simulation</h2>
+    <p>{{ error }}</p>
+    <button class="btn btn-primary" (click)="router.navigate(['/simulate/setup'])">
+      Neue Simulation starten
+    </button>
+  </div>
+
+  <!-- Simulation Interface -->
+  <div *ngIf="!isLoading && !error && currentQuestion" class="simulation-interface">
+    
+    <!-- Main Block Container -->
+    <div class="simulation-block">
+      
+      <!-- Block Header with Progress Bar -->
+      <div class="block-header">
+        <div class="header-content">
+          <div class="header-left">
+            <h1>🎯 Simulation läuft</h1>
+            <p>Frage {{ currentQuestionIndex + 1 }} von {{ totalQuestions }}</p>
+          </div>
+          
+          <div class="header-right">
+            <!-- Timer (nur bei Zeitlimit) -->
+            <div *ngIf="hasTimeLimit && timerState" class="timer" [class]="getTimeRemainingClass()">
+              <span class="timer-icon">{{ getTimeStatusIcon() }}</span>
+              <span class="timer-text">{{ formatTime(timerState.timeRemaining) }}</span>
+              <span class="timer-status">{{ getTimeStatusText() }}</span>
+            </div>
+            
+            <!-- Pause/Resume Button (nur bei Zeitlimit) -->
+            <button 
+              *ngIf="hasTimeLimit"
+              class="btn btn-outline pause-btn" 
+              (click)="togglePause()"
+              [class.paused]="isPaused"
+            >
+              {{ isPaused ? '▶️ Fortsetzen' : '⏸️ Pausieren' }}
+            </button>
+          </div>
+        </div>
+        
+        <!-- Progress Bar integrated in header -->
+        <div class="progress-section">
+          <div class="progress-bar">
+            <div class="progress-fill" [style.width]="getProgressBarWidth()"></div>
+          </div>
+          <div class="progress-text">
+            {{ progress.current }} / {{ progress.total }} Fragen beantwortet
+            <span class="progress-percentage">({{ progress.percentage | number:'1.0-0' }}%)</span>
+          </div>
+        </div>
+        
+        <!-- Question Navigation Dots integrated in header -->
+        <div class="question-navigation">
+          <button 
+            class="btn btn-outline nav-btn" 
+            (click)="previousQuestion()"
+            [disabled]="!canGoPrevious"
+          >
+            ← Zurück
+          </button>
+          
+          <div class="question-dots">
+            <button 
+              *ngFor="let question of [].constructor(totalQuestions); let i = index"
+              class="question-dot"
+              [class.active]="i === currentQuestionIndex"
+              [class.answered]="isQuestionAnsweredByIndex(i)"
+              (click)="goToQuestion(i)"
+            >
+              {{ i + 1 }}
+            </button>
+          </div>
+          
+          <button 
+            class="btn btn-outline nav-btn" 
+            (click)="nextQuestion()"
+            [disabled]="!canGoNext"
+          >
+            Weiter →
+          </button>
+        </div>
+      </div>
+
+      <!-- Block Content -->
+      <div class="block-content">
+        <!-- Current Question -->
+        <div class="question-container">
+          <div class="question-header">
+            <span class="question-type-badge">{{ getQuestionTypeLabel(currentQuestion.type) }}</span>
+            <span class="question-number">Frage {{ currentQuestionIndex + 1 }}</span>
+          </div>
+          
+          <div class="question-text">
+            {{ currentQuestion.text }}
+          </div>
+
+          <!-- Single Choice -->
+          <div *ngIf="currentQuestion.type === 'single'" class="question-options">
+            <div 
+              *ngFor="let option of currentQuestion.options"
+              class="option-item"
+              (click)="onSingleChoiceSelect(option.id)"
+            >
+              <input 
+                type="radio" 
+                [id]="'option-' + option.id"
+                [name]="'question-' + currentQuestion.id"
+                [value]="option.id"
+                [checked]="selectedAnswers.includes(option.id)"
+                [disabled]="isAnswered"
+              >
+              <label [for]="'option-' + option.id">{{ option.text }}</label>
+            </div>
+          </div>
+
+          <!-- Multiple Choice -->
+          <div *ngIf="currentQuestion.type === 'multi'" class="question-options">
+            <div 
+              *ngFor="let option of currentQuestion.options"
+              class="option-item"
+              (click)="onMultipleChoiceToggle(option.id)"
+            >
+              <input 
+                type="checkbox" 
+                [id]="'option-' + option.id"
+                [value]="option.id"
+                [checked]="selectedAnswers.includes(option.id)"
+                [disabled]="isAnswered"
+                (click)="$event.stopPropagation()"
+              >
+              <label [for]="'option-' + option.id">{{ option.text }}</label>
+            </div>
+            
+            <div class="multiple-choice-submit">
+              <button 
+                class="btn btn-primary"
+                (click)="onMultipleChoiceSubmit()"
+                [disabled]="!canSubmitMultipleChoice() || isAnswered"
+              >
+                Antwort bestätigen
+              </button>
+              <small class="help-text">
+                Wähle {{ currentQuestion.correctAnswers?.length || 0 }} Option(en) aus
+              </small>
+            </div>
+          </div>
+
+          <!-- Fill-in -->
+          <div *ngIf="currentQuestion.type === 'fill'" class="fill-in-container">
+            <input 
+              type="text" 
+              class="fill-in-input"
+              [placeholder]="'Deine Antwort eingeben...'"
+              [(ngModel)]="fillInAnswer"
+              (input)="onFillInInput($event)"
+              [disabled]="isAnswered"
+            >
+            <button 
+              class="btn btn-primary"
+              (click)="onFillInSubmit()"
+              [disabled]="!fillInAnswer.trim() || isAnswered"
+            >
+              Antwort bestätigen
+            </button>
+          </div>
+
+          <!-- Solution Display (nur nach Simulation) -->
+          <div *ngIf="simulationCompleted && currentAnswer" class="solution-display">
+            <div class="solution-header">
+              <h3>📋 Lösung & Erklärung</h3>
+            </div>
+            
+            <!-- Deine Antwort -->
+            <div class="answer-section">
+              <h4>Deine Antwort:</h4>
+              <div class="user-answer" [class]="currentAnswer.isCorrect ? 'correct' : 'incorrect'">
+                <span class="answer-label">Antwort:</span>
+                <span class="answer-text">{{ getAnswerTexts(currentAnswer.answers).join(', ') }}</span>
+                <span class="answer-status">
+                  {{ currentAnswer.isCorrect ? '✅ Richtig' : '❌ Falsch' }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Richtige Antwort -->
+            <div class="correct-answer-section">
+              <h4>Richtige Antwort:</h4>
+              <div class="correct-answer">
+                <span class="answer-label">Antwort:</span>
+                <span class="answer-text">{{ getCorrectAnswerTexts().join(', ') }}</span>
+              </div>
+            </div>
+
+            <!-- Erklärung -->
+            <div *ngIf="currentQuestion.explanation" class="explanation-section">
+              <h4>💡 Erklärung:</h4>
+              <div class="explanation-text">
+                {{ currentQuestion.explanation }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+          <button 
+            *ngIf="!isFirstQuestion"
+            class="btn btn-outline"
+            (click)="previousQuestion()"
+            [disabled]="!canGoPrevious"
+          >
+            ← Vorherige Frage
+          </button>
+          
+          <button 
+            *ngIf="!isLastQuestion"
+            class="btn btn-primary"
+            (click)="nextQuestion()"
+            [disabled]="!canGoNext || !isAnswered"
+          >
+            Nächste Frage →
+          </button>
+          
+          <button 
+            *ngIf="isLastQuestion && isAnswered"
+            class="btn btn-success"
+            (click)="finishSimulation()"
+          >
+            🏁 Ergebnisse anzeigen
+          </button>
+        </div>
+
+        <!-- Simulation Info -->
+        <div class="simulation-info">
+          <div class="info-card">
+            <h3>Simulation-Info</h3>
+            <p><strong>Zeit verbraucht:</strong> {{ formatTime(timerState?.timeSpent || 0) }}</p>
+            <p><strong>Status:</strong> {{ isPaused ? 'Pausiert' : 'Aktiv' }}</p>
+            <p><strong>Fragen beantwortet:</strong> {{ progress.current }} / {{ progress.total }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Results Modal -->
+<div *ngIf="showResultsModal" class="modal-overlay results-modal-overlay" (click)="closeResultsModal()">
+  <div class="modal-content results-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>🏁 Simulation abgeschlossen!</h2>
+      <button class="modal-close" (click)="closeResultsModal()">×</button>
+    </div>
+    
+    <div class="modal-body">
+      <div class="results-content">
+        <!-- Compact Results -->
+        <div class="compact-results">
+          <!-- Score Display -->
+          <div class="score-display">
+            <div class="score-main">
+              <span class="score-number">{{ getSimulationResults()?.correctAnswers || 0 }}</span>
+              <span class="score-separator">/</span>
+              <span class="score-total">{{ getSimulationResults()?.totalQuestions || 0 }}</span>
+            </div>
+            <div class="score-percentage">{{ formatPercentage(getSimulationResults()?.percentage || 0) }}</div>
+          </div>
+
+          <!-- Essential Stats -->
+          <div class="essential-stats">
+            <div class="stat-item">
+              <span class="stat-icon">✅</span>
+              <span class="stat-label">Richtig</span>
+              <span class="stat-value correct">{{ getSimulationResults()?.correctAnswers || 0 }}</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-icon">❌</span>
+              <span class="stat-label">Falsch</span>
+              <span class="stat-value incorrect">{{ getSimulationResults()?.incorrectAnswers || 0 }}</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-icon">⏱️</span>
+              <span class="stat-label">Verbraucht</span>
+              <span class="stat-value">{{ formatTime(getSimulationResults()?.totalTime || 0) }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+          <button class="btn btn-outline" (click)="closeResultsModal()">
+            🔍 Fragen ansehen
+          </button>
+          <button class="btn btn-primary" (click)="goToHome()">
+            🏠 Zurück zum Start
+          </button>
+          <button class="btn btn-success" (click)="startNewSimulation()">
+            🚀 Neue Simulation
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

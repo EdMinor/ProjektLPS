@@ -1,43 +1,28 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { HeaderComponent, BreadcrumbItem } from '../../shared/components/header/header.component';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, HeaderComponent],
   templateUrl: './home.component.html',
   styleUrl: './home.component.css'
 })
 export class HomeComponent {
-  selectedTopic: '101' | '102' | 'all' | null = null;
-  showTopicSelection = false;
+  // Breadcrumbs for header
+  breadcrumbs: BreadcrumbItem[] = [
+    { label: 'Startseite', active: true }
+  ];
 
   constructor(private router: Router) {}
 
   startLearning(): void {
-    this.showTopicSelection = true;
-  }
-
-  selectTopic(topic: '101' | '102' | 'all'): void {
-    this.selectedTopic = topic;
-    this.showTopicSelection = false;
-    
-    if (topic === 'all') {
-      this.router.navigate(['/learn/catalogs']);
-    } else {
-      this.router.navigate(['/learn/catalogs'], { 
-        queryParams: { topic: topic } 
-      });
-    }
+    this.router.navigate(['/learn/catalogs']);
   }
 
   startSimulation(): void {
     this.router.navigate(['/simulate/setup']);
-  }
-
-  goBack(): void {
-    this.selectedTopic = null;
-    this.showTopicSelection = false;
   }
 }

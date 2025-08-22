@@ -1,23 +1,54 @@
+<!-- Header -->
+<app-header [breadcrumbs]="breadcrumbs"></app-header>
+
+<!-- Main Content -->
 <div class="catalog-list-container">
-  <div class="header">
-    <button class="back-button" (click)="goBack()">← Zurück</button>
-    <h1>Lernkataloge</h1>
-    
-    <!-- Topic Filter Display -->
-    <div *ngIf="selectedTopic" class="topic-filter">
-      <div class="filter-info">
-        <span class="filter-label">Gefiltert nach:</span>
-        <span class="filter-value">
-          {{ selectedTopic === '101' ? 'LPIC-101' : selectedTopic === '102' ? 'LPIC-102' : 'Alle Themen' }}
-        </span>
-        <button class="clear-filter-btn" (click)="clearFilter()">Filter löschen</button>
-      </div>
-      <p>{{ catalogs.length }} Katalog{{ catalogs.length !== 1 ? 'e' : '' }} verfügbar</p>
+  <!-- Compact Header with Filters -->
+  <div class="compact-header">
+    <div class="header-left">
+      <h1>Kataloge</h1>
+      <p *ngIf="!selectedTopic">Wähle einen Katalog aus, um mit dem Lernen zu beginnen</p>
+      <p *ngIf="selectedTopic">{{ catalogs.length }} Katalog{{ catalogs.length !== 1 ? 'e' : '' }} verfügbar</p>
     </div>
     
-    <p *ngIf="!selectedTopic">Wähle einen Katalog aus, um mit dem Lernen zu beginnen</p>
+    <div class="header-right">
+      <!-- Topic Filter Buttons -->
+      <div class="filter-buttons">
+        <button 
+          class="filter-btn" 
+          [class.active]="selectedTopic === '101'"
+          (click)="filterByTopic('101')"
+        >
+          LPIC-101
+        </button>
+        <button 
+          class="filter-btn" 
+          [class.active]="selectedTopic === '102'"
+          (click)="filterByTopic('102')"
+        >
+          LPIC-102
+        </button>
+        <button 
+          class="filter-btn" 
+          [class.active]="selectedTopic === 'all'"
+          (click)="filterByTopic('all')"
+        >
+          Alle Themen
+        </button>
+      </div>
+      
+      <!-- Clear Filter Button -->
+      <button 
+        *ngIf="selectedTopic" 
+        class="clear-filter-btn" 
+        (click)="clearFilter()"
+      >
+        Filter löschen
+      </button>
+    </div>
   </div>
 
+  <!-- Content -->
   <div class="content">
     <div *ngIf="loading" class="loading">
       <div class="spinner"></div>
@@ -29,6 +60,7 @@
       <button (click)="loadCatalogs()" class="retry-button">Erneut versuchen</button>
     </div>
 
+    <!-- Compact Catalog Grid -->
     <div *ngIf="!loading && !error" class="catalogs-grid">
       <div 
         *ngFor="let catalog of catalogs" 
@@ -53,8 +85,15 @@
     <div *ngIf="!loading && !error && catalogs.length === 0" class="empty-state">
       <div class="empty-icon">📚</div>
       <h3>Keine Kataloge gefunden</h3>
-      <p>Für den ausgewählten Filter wurden keine Kataloge gefunden.</p>
-      <button class="clear-filter-btn" (click)="clearFilter()">Alle Kataloge anzeigen</button>
+      <p *ngIf="selectedTopic">
+        Für "{{ selectedTopic === '101' ? 'LPIC-101' : selectedTopic === '102' ? 'LPIC-102' : 'Alle Themen' }}" sind derzeit keine Kataloge verfügbar.
+      </p>
+      <p *ngIf="!selectedTopic">
+        Es sind derzeit keine Kataloge verfügbar.
+      </p>
+      <button *ngIf="selectedTopic" (click)="clearFilter()" class="btn btn-outline">
+        Alle Kataloge anzeigen
+      </button>
     </div>
   </div>
 </div>

@@ -93,6 +93,13 @@
       "code": "lpic102g",
       "title": "LPIC 102 - Block G",
       "questionCount": 90
+    },
+    {
+      "id": 112,
+      "topicId": 1,
+      "code": "TEST",
+      "title": "LPIC TEST",
+      "questionCount": 5
     }
   ],
   "questions": [
@@ -38428,6 +38435,160 @@
         "$DISPLAY"
       ],
       "explanation": "Keine Erklärung verfügbar"
+    },
+    {
+      "id": 1120001,
+      "catalogId": 112,
+      "type": "single",
+      "text": "Was ist der Standard-Port für HTTP?",
+      "options": [
+        {
+          "id": "1",
+          "text": "80",
+          "correct": true
+        },
+        {
+          "id": "2",
+          "text": "443",
+          "correct": false
+        },
+        {
+          "id": "3",
+          "text": "8080",
+          "correct": false
+        },
+        {
+          "id": "4",
+          "text": "21",
+          "correct": false
+        }
+      ],
+      "correctAnswer": "1",
+      "explanation": "HTTP verwendet standardmäßig Port 80"
+    },
+    {
+      "id": 1120002,
+      "catalogId": 112,
+      "type": "multi",
+      "text": "Welche der folgenden Befehle zeigen den Inhalt eines Verzeichnisses an? (Wähle ZWEI richtige Antworten.)",
+      "options": [
+        {
+          "id": "1",
+          "text": "ls",
+          "correct": true
+        },
+        {
+          "id": "2",
+          "text": "cat",
+          "correct": false
+        },
+        {
+          "id": "3",
+          "text": "dir",
+          "correct": true
+        },
+        {
+          "id": "4",
+          "text": "pwd",
+          "correct": false
+        },
+        {
+          "id": "5",
+          "text": "tree",
+          "correct": false
+        }
+      ],
+      "correctAnswers": [
+        "1",
+        "3"
+      ],
+      "explanation": "ls und dir zeigen Verzeichnisinhalte an"
+    },
+    {
+      "id": 1120003,
+      "catalogId": 112,
+      "type": "fill",
+      "text": "Welcher Befehl wird verwendet, um den aktuellen Benutzer anzuzeigen?",
+      "options": [
+        {
+          "id": "1",
+          "text": "whoami",
+          "correct": true
+        }
+      ],
+      "correctAnswers": [
+        "whoami"
+      ],
+      "explanation": "Der Befehl 'whoami' zeigt den aktuellen Benutzer an"
+    },
+    {
+      "id": 1120004,
+      "catalogId": 112,
+      "type": "single",
+      "text": "Was bedeutet das Akronym 'FHS'?",
+      "options": [
+        {
+          "id": "1",
+          "text": "Filesystem Hierarchy Standard",
+          "correct": true
+        },
+        {
+          "id": "2",
+          "text": "File Handling System",
+          "correct": false
+        },
+        {
+          "id": "3",
+          "text": "Free Hardware Standard",
+          "correct": false
+        },
+        {
+          "id": "4",
+          "text": "File Hosting Service",
+          "correct": false
+        }
+      ],
+      "correctAnswer": "1",
+      "explanation": "FHS steht für Filesystem Hierarchy Standard"
+    },
+    {
+      "id": 1120005,
+      "catalogId": 112,
+      "type": "multi",
+      "text": "Welche der folgenden sind gültige Linux-Dateisysteme? (Wähle DREI richtige Antworten.)",
+      "options": [
+        {
+          "id": "1",
+          "text": "ext4",
+          "correct": true
+        },
+        {
+          "id": "2",
+          "text": "NTFS",
+          "correct": false
+        },
+        {
+          "id": "3",
+          "text": "XFS",
+          "correct": true
+        },
+        {
+          "id": "4",
+          "text": "FAT32",
+          "correct": false
+        },
+        {
+          "id": "5",
+          "text": "Btrfs",
+          "correct": true
+        }
+      ],
+      "correctAnswers": [
+        "1",
+        "3",
+        "5"
+      ],
+      "explanation": "ext4, XFS und Btrfs sind native Linux-Dateisysteme"
     }
   ]
 }

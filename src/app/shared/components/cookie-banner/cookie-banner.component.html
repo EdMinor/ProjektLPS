@@ -1,0 +1,20 @@
+<div *ngIf="showBanner" class="cookie-banner">
+  <div class="cookie-content">
+    <div class="cookie-text">
+      <h3>🍪 Cookie-Einstellungen</h3>
+      <p>
+        Diese App verwendet nur technisch notwendige Cookies für die Funktionalität 
+        (z.B. Simulation-Status, Lernfortschritt). Es werden keine persönlichen 
+        Daten gespeichert oder an Dritte weitergegeben.
+      </p>
+    </div>
+    <div class="cookie-actions">
+      <button class="btn btn-outline" (click)="declineCookies()">
+        Ablehnen
+      </button>
+      <button class="btn btn-primary" (click)="acceptCookies()">
+        Akzeptieren
+      </button>
+    </div>
+  </div>
+</div>

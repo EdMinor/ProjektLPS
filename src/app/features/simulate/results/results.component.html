@@ -1,0 +1,71 @@
+<!-- Results Modal -->
+<div class="modal-overlay results-modal-overlay" (click)="closeResults()">
+  <div class="modal-content results-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>🏁 Simulation abgeschlossen!</h2>
+      <button class="modal-close" (click)="closeResults()">×</button>
+    </div>
+    
+    <div class="modal-body">
+      <!-- Loading State -->
+      <div *ngIf="isLoading" class="loading-state">
+        <div class="loading-spinner"></div>
+        <p>Lade Ergebnisse...</p>
+      </div>
+
+      <!-- Error State -->
+      <div *ngIf="error" class="error-state">
+        <div class="error-icon">⚠️</div>
+        <p>{{ error }}</p>
+      </div>
+
+      <!-- Results Display -->
+      <div *ngIf="!isLoading && !error && results" class="results-content">
+        <!-- Compact Results -->
+        <div class="compact-results">
+          <!-- Score Display -->
+          <div class="score-display">
+            <div class="score-main">
+              <span class="score-number">{{ results.correctAnswers }}</span>
+              <span class="score-separator">/</span>
+              <span class="score-total">{{ results.totalQuestions }}</span>
+            </div>
+            <div class="score-percentage">{{ formatPercentage(results.percentage) }}</div>
+          </div>
+
+          <!-- Essential Stats -->
+          <div class="essential-stats">
+            <div class="stat-item">
+              <span class="stat-icon">✅</span>
+              <span class="stat-label">Richtig</span>
+              <span class="stat-value correct">{{ results.correctAnswers }}</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-icon">❌</span>
+              <span class="stat-label">Falsch</span>
+              <span class="stat-value incorrect">{{ results.incorrectAnswers }}</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-icon">⏱️</span>
+              <span class="stat-label">Verbraucht</span>
+              <span class="stat-value">{{ formatTime(results.totalTime) }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+          <button class="btn btn-outline" (click)="closeResults()">
+            🔍 Fragen ansehen
+          </button>
+          <button class="btn btn-primary" (click)="goToHome()">
+            🏠 Zurück zum Start
+          </button>
+          <button class="btn btn-success" (click)="startNewSimulation()">
+            🚀 Neue Simulation
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

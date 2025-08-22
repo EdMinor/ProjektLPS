@@ -1,25 +1,370 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+import { ApiService } from '../../../core/services/api.service';
+import { SimulationStoreService } from '../../../core/services/simulation-store.service';
+import { TimerService } from '../../../core/services/timer.service';
+import { HeaderComponent, BreadcrumbItem } from '../../../shared/components/header/header.component';
+import { Catalog, Topic, SimulationConfig } from '../../../core/models';
 
 @Component({
-  selector: 'app-setup',
+  selector: 'app-simulation-setup',
   standalone: true,
-  imports: [CommonModule],
-  template: `
-    <div style="padding: 2rem; text-align: center;">
-      <h1>Simulation Setup</h1>
-      <p>Diese Komponente wird in der nächsten Phase implementiert.</p>
-      <button (click)="goHome()" style="background: #667eea; color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 8px; cursor: pointer;">
-        Zurück zur Startseite
-      </button>
-    </div>
-  `
+  imports: [CommonModule, ReactiveFormsModule, HeaderComponent],
+  templateUrl: './setup.component.html',
+  styleUrls: ['./setup.component.css']
 })
-export class SetupComponent {
-  constructor(private router: Router) {}
+export class SimulationSetupComponent implements OnInit {
+  setupForm!: FormGroup;
+  catalogs: Catalog[] = [];
+  allCatalogs: Catalog[] = []; // Store all catalogs
+  topics: Topic[] = [];
+  isLoading = false;
+  error: string | null = null;
+  selectedTopic: string | null = 'all'; // Default to show all catalogs
+  showConfigModal: boolean = false;
+  showCatalogDropdown: boolean = false;
+  dropdownDirection: 'up' | 'down' = 'down'; // Add dropdown direction property
+  showCatalogModal: boolean = false; // Add catalog modal property
 
-  goHome(): void {
-    this.router.navigate(['/home']);
+  // Breadcrumbs for header
+  breadcrumbs: BreadcrumbItem[] = [
+    { label: 'Startseite', route: '/' },
+    { label: 'Simulation', route: '/simulate/setup' },
+    { label: 'Setup', active: true }
+  ];
+
+  constructor(
+    private fb: FormBuilder,
+    private apiService: ApiService,
+    private simulationStore: SimulationStoreService,
+    private timerService: TimerService,
+    public router: Router
+  ) {}
+
+  ngOnInit(): void {
+    this.initForm();
+    this.loadData();
+  }
+
+  private initForm(): void {
+    this.setupForm = this.fb.group({
+      catalogId: ['', Validators.required],
+      questionCount: [20, [Validators.required, Validators.min(1)]],
+      timeLimit: [false],
+      timeLimitMinutes: [60, [Validators.min(1), Validators.max(300)]],
+      shuffleQuestions: [true],
+      shuffleOptions: [true],
+      useSeed: [false]
+    });
+
+    // Time limit fields werden nur aktiviert wenn timeLimit true ist
+    this.setupForm.get('timeLimit')?.valueChanges.subscribe(hasTimeLimit => {
+      const timeLimitMinutesControl = this.setupForm.get('timeLimitMinutes');
+      if (hasTimeLimit) {
+        timeLimitMinutesControl?.enable();
+      } else {
+        timeLimitMinutesControl?.disable();
+      }
+    });
+
+    // Shuffle options werden nur aktiviert wenn shuffleQuestions true ist
+    this.setupForm.get('shuffleQuestions')?.valueChanges.subscribe(shuffleQuestions => {
+      const shuffleOptionsControl = this.setupForm.get('shuffleOptions');
+      const useSeedControl = this.setupForm.get('useSeed');
+      
+      if (shuffleQuestions) {
+        shuffleOptionsControl?.enable();
+        useSeedControl?.enable();
+      } else {
+        shuffleOptionsControl?.disable();
+        useSeedControl?.disable();
+        // Setze Werte zurück
+        shuffleOptionsControl?.setValue(false);
+        useSeedControl?.setValue(false);
+      }
+    });
+  }
+
+  public async loadData(): Promise<void> {
+    this.isLoading = true;
+    this.error = null;
+
+    try {
+      const [catalogsData, topicsData] = await Promise.all([
+        this.apiService.getCatalogs().toPromise(),
+        this.apiService.getTopics().toPromise()
+      ]);
+
+      this.allCatalogs = catalogsData || []; // Store all catalogs first
+      this.topics = topicsData || [];
+
+
+
+      // Initialize catalogs based on current filter
+      this.filterCatalogs();
+
+      // Setze den ersten Katalog als Standard
+      if (this.catalogs.length > 0) {
+        this.setupForm.patchValue({
+          catalogId: this.catalogs[0].id
+        });
+        this.updateMaxQuestions();
+      }
+    } catch (error) {
+      this.error = 'Fehler beim Laden der Kataloge. Bitte versuche es erneut.';
+      console.error('Error loading data:', error);
+    } finally {
+      this.isLoading = false;
+    }
+  }
+
+  private updateMaxQuestions(): void {
+    const selectedCatalogId = this.setupForm.get('catalogId')?.value;
+    const selectedCatalog = this.catalogs.find(c => c.id === selectedCatalogId);
+    
+    if (selectedCatalog) {
+      const maxQuestions = selectedCatalog.questionCount;
+      const questionCountControl = this.setupForm.get('questionCount');
+      
+      questionCountControl?.setValidators([
+        Validators.required,
+        Validators.min(1),
+        Validators.max(maxQuestions)
+      ]);
+      
+      // Passe die Anzahl der Fragen an, falls sie über dem Maximum liegt
+      if (questionCountControl && questionCountControl.value > maxQuestions) {
+        questionCountControl.setValue(maxQuestions);
+      }
+      
+      questionCountControl?.updateValueAndValidity();
+    }
+  }
+
+  onCatalogChange(): void {
+    this.updateMaxQuestions();
+  }
+
+  getSelectedCatalog(): Catalog | null {
+    const catalogId = this.setupForm.get('catalogId')?.value;
+    return this.catalogs.find(c => c.id === catalogId) || null;
+  }
+
+  getTopicName(topicId: number): string {
+    const topic = this.topics.find(t => t.id === topicId);
+    return topic ? topic.name : 'Unbekannt';
+  }
+
+  onSubmit(): void {
+    if (this.setupForm.valid) {
+      const formValue = this.setupForm.value;
+      
+      // Erstelle die Simulation-Konfiguration
+      const simulationConfig: SimulationConfig = {
+        catalogId: formValue.catalogId,
+        questionCount: formValue.questionCount,
+        timeLimit: formValue.timeLimit,
+        timeLimitMinutes: formValue.timeLimit ? formValue.timeLimitMinutes : null,
+        shuffleQuestions: formValue.shuffleQuestions,
+        shuffleOptions: formValue.shuffleOptions || false,
+        useSeed: formValue.useSeed || false
+      };
+
+      // Lade Fragen für den ausgewählten Katalog
+      this.loadQuestionsAndStartSimulation(simulationConfig);
+    }
+  }
+
+  private async loadQuestionsAndStartSimulation(config: SimulationConfig): Promise<void> {
+    try {
+      const questions = await this.apiService.getQuestionsByCatalog(config.catalogId).toPromise();
+      
+      if (questions && questions.length > 0) {
+        const selectedQuestions = questions.slice(0, config.questionCount);
+
+        this.timerService.resetTimer(); // Reset timer before new simulation
+
+        this.simulationStore.initializeSimulation(config, selectedQuestions);
+
+        this.router.navigate(['/simulate/run']);
+      } else {
+        this.error = 'Keine Fragen für den ausgewählten Katalog gefunden.';
+      }
+    } catch (error) {
+      this.error = 'Fehler beim Laden der Fragen. Bitte versuche es erneut.';
+      console.error('Error loading questions:', error);
+    }
+  }
+
+  // New methods for the updated UI
+  selectCatalog(catalogId: number): void {
+    this.setupForm.patchValue({ catalogId });
+    this.updateMaxQuestions();
+    this.showCatalogModal = false; // Close modal after selection
+  }
+
+  getMaxQuestions(): number {
+    const selectedCatalog = this.getSelectedCatalog();
+    return selectedCatalog ? selectedCatalog.questionCount : 1;
+  }
+
+  // New button-based configuration methods
+  setQuestionCount(count: number): void {
+    this.setupForm.patchValue({ questionCount: count });
+  }
+
+  setTimeLimit(minutes: number): void {
+    this.setupForm.patchValue({ 
+      timeLimit: true, 
+      timeLimitMinutes: minutes 
+    });
+  }
+
+  disableTimeLimit(): void {
+    this.setupForm.patchValue({ 
+      timeLimit: false, 
+      timeLimitMinutes: null 
+    });
+  }
+
+  toggleShuffleQuestions(): void {
+    const currentValue = this.setupForm.get('shuffleQuestions')?.value;
+    this.setupForm.patchValue({ 
+      shuffleQuestions: !currentValue,
+      shuffleOptions: !currentValue ? false : this.setupForm.get('shuffleOptions')?.value,
+      useSeed: !currentValue ? false : this.setupForm.get('useSeed')?.value
+    });
+  }
+
+  toggleShuffleOptions(): void {
+    const currentValue = this.setupForm.get('shuffleOptions')?.value;
+    this.setupForm.patchValue({ shuffleOptions: !currentValue });
+  }
+
+  toggleUseSeed(): void {
+    const currentValue = this.setupForm.get('useSeed')?.value;
+    this.setupForm.patchValue({ useSeed: !currentValue });
+  }
+
+  resetForm(): void {
+    this.setupForm.reset({
+      catalogId: this.catalogs.length > 0 ? this.catalogs[0].id : '',
+      questionCount: 20,
+      timeLimit: false,
+      timeLimitMinutes: 60,
+      shuffleQuestions: true,
+      shuffleOptions: true,
+      useSeed: false
+    });
+    this.updateMaxQuestions();
+  }
+
+  // Topic filtering methods
+  filterByTopic(topic: string): void {
+    this.selectedTopic = topic;
+    this.filterCatalogs();
+  }
+
+  clearFilter(): void {
+    this.selectedTopic = null;
+    this.filterCatalogs();
+  }
+
+  private filterCatalogs(): void {
+    if (!this.selectedTopic || this.selectedTopic === 'all') {
+      // Alle Kataloge anzeigen
+      this.catalogs = this.allCatalogs;
+      return;
+    }
+
+    // Filtere Kataloge nach Thema
+    const topicId = this.selectedTopic === '101' ? 1 : 2;
+    this.catalogs = this.allCatalogs.filter(catalog => catalog.topicId === topicId);
+  }
+
+  // Modal methods
+  openConfigModal(): void {
+    this.showConfigModal = true;
+  }
+
+  closeConfigModal(): void {
+    this.showConfigModal = false;
+  }
+
+  // Catalog modal methods
+  openCatalogModal(): void {
+    this.showCatalogModal = true;
+  }
+
+  closeCatalogModal(): void {
+    this.showCatalogModal = false;
+  }
+
+  // Configuration summary method
+  getConfigSummary(): string {
+    const questionCount = this.setupForm.get('questionCount')?.value || 20;
+    const timeLimit = this.setupForm.get('timeLimit')?.value;
+    const timeLimitMinutes = this.setupForm.get('timeLimitMinutes')?.value;
+    const shuffleQuestions = this.setupForm.get('shuffleQuestions')?.value;
+    const shuffleOptions = this.setupForm.get('shuffleOptions')?.value;
+
+    let summary = `${questionCount} Fragen`;
+    
+    if (timeLimit && timeLimitMinutes) {
+      summary += `, ${timeLimitMinutes} Min`;
+    } else {
+      summary += `, Kein Zeitlimit`;
+    }
+    
+    if (shuffleQuestions) {
+      summary += `, Gemischt`;
+      if (shuffleOptions) {
+        summary += ` + Optionen`;
+      }
+    }
+    
+    return summary;
+  }
+
+  // Catalog dropdown methods
+  toggleCatalogDropdown(): void {
+    this.showCatalogDropdown = !this.showCatalogDropdown;
+    if (this.showCatalogDropdown) {
+      this.determineDropdownDirection();
+    }
+  }
+
+  private determineDropdownDirection(): void {
+    // Get the dropdown container element
+    const dropdownContainer = document.querySelector('.catalog-dropdown-container');
+    if (!dropdownContainer) {
+      this.dropdownDirection = 'down';
+      return;
+    }
+
+    const containerRect = dropdownContainer.getBoundingClientRect();
+    const viewportHeight = window.innerHeight;
+    const dropdownHeight = 300; // max-height from CSS
+
+    // Check if there's enough space below
+    const spaceBelow = viewportHeight - containerRect.bottom;
+    const spaceAbove = containerRect.top;
+
+    if (spaceBelow < dropdownHeight && spaceAbove > dropdownHeight) {
+      this.dropdownDirection = 'up';
+    } else {
+      this.dropdownDirection = 'down';
+    }
+  }
+
+  // Close dropdown when clicking outside
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: Event): void {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.catalog-dropdown-container')) {
+      this.showCatalogDropdown = false;
+    }
   }
 }

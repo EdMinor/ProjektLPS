@@ -1,280 +1,103 @@
 .home-container {
   max-width: 1200px;
-  margin: 0 auto;
-  padding: 2rem;
+  margin: 80px auto 0 auto;
+  padding: 2rem 1rem;
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--bg-primary);
 }
 
 .hero-section {
   text-align: center;
   margin-bottom: 4rem;
-  color: white;
+  padding: 3rem 0;
 }
 
 .hero-section h1 {
-  font-size: 3rem;
+  font-size: 3.5rem;
   font-weight: 700;
   margin-bottom: 1rem;
-  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
-.subtitle {
-  font-size: 1.25rem;
-  opacity: 0.9;
-  font-weight: 300;
-}
-
-/* Topic Selection Modal */
-.topic-selection-modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.8);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-  backdrop-filter: blur(5px);
-}
-
-.modal-content {
-  background: white;
-  border-radius: 20px;
-  padding: 3rem;
-  max-width: 900px;
-  width: 90%;
-  max-height: 90vh;
-  overflow-y: auto;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-  text-align: center;
-}
-
-.modal-content h2 {
-  font-size: 2.5rem;
-  color: #2d3748;
-  margin-bottom: 1rem;
-  font-weight: 700;
-}
-
-.modal-content p {
-  color: #718096;
-  font-size: 1.1rem;
+.hero-section p {
+  font-size: 1.3rem;
+  color: var(--text-secondary);
   margin-bottom: 2rem;
-}
-
-.topic-options {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 2rem;
-  margin-bottom: 2rem;
-}
-
-.topic-card {
-  background: #f7fafc;
-  border-radius: 16px;
-  padding: 2rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  border: 3px solid transparent;
-}
-
-.topic-card:hover {
-  transform: translateY(-5px);
-  background: white;
-  border-color: #667eea;
-  box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);
-}
-
-.topic-icon {
-  font-size: 3rem;
-  margin-bottom: 1rem;
-}
-
-.topic-card h3 {
-  font-size: 1.5rem;
-  color: #2d3748;
-  margin-bottom: 1rem;
-  font-weight: 600;
-}
-
-.topic-card p {
-  color: #718096;
-  line-height: 1.6;
-  margin-bottom: 1rem;
-  font-size: 0.9rem;
-}
-
-.topic-count {
-  background: #667eea;
-  color: white;
-  padding: 0.5rem 1rem;
-  border-radius: 20px;
-  font-size: 0.875rem;
-  font-weight: 500;
-}
-
-.back-button {
-  background: #718096;
-  color: white;
-  border: none;
-  padding: 0.75rem 1.5rem;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 500;
-  transition: background 0.3s ease;
-}
-
-.back-button:hover {
-  background: #4a5568;
-}
-
-.mode-selection {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-  gap: 2rem;
-  margin-bottom: 4rem;
-}
-
-.mode-card {
-  background: white;
-  border-radius: 16px;
-  padding: 2rem;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-  transition: all 0.3s ease;
-  cursor: pointer;
-  border: 2px solid transparent;
-}
-
-.mode-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 20px 40px rgba(0,0,0,0.3);
-}
-
-.learning-mode:hover {
-  border-color: #4CAF50;
-}
-
-.simulation-mode:hover {
-  border-color: #FF9800;
-}
-
-.mode-icon {
-  font-size: 3rem;
-  text-align: center;
-  margin-bottom: 1rem;
-}
-
-.mode-card h2 {
-  font-size: 1.75rem;
-  font-weight: 600;
-  margin-bottom: 1rem;
-  color: #333;
-  text-align: center;
-}
-
-.mode-card p {
-  color: #666;
-  line-height: 1.6;
-  margin-bottom: 1.5rem;
-  text-align: center;
-}
-
-.mode-features {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  margin-bottom: 2rem;
-}
-
-.mode-features span {
-  color: #4CAF50;
-  font-weight: 500;
-  font-size: 0.9rem;
-}
-
-.mode-button {
-  width: 100%;
-  padding: 1rem;
-  border: none;
-  border-radius: 8px;
-  font-size: 1.1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.learning-btn {
-  background: #4CAF50;
-  color: white;
-}
-
-.learning-btn:hover {
-  background: #45a049;
-}
-
-.simulation-btn {
-  background: #FF9800;
-  color: white;
-}
-
-.simulation-btn:hover {
-  background: #f57c00;
-}
-
-.info-section {
-  background: rgba(255,255,255,0.1);
-  border-radius: 12px;
-  padding: 2rem;
-  text-align: center;
-  color: white;
-  backdrop-filter: blur(10px);
-}
-
-.info-section h3 {
-  font-size: 1.5rem;
-  margin-bottom: 1rem;
-  font-weight: 600;
-}
-
-.info-section p {
-  opacity: 0.9;
-  line-height: 1.6;
   max-width: 600px;
-  margin: 0 auto;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.6;
 }
 
+/* Action Buttons */
+.action-buttons {
+  display: flex;
+  gap: 1.5rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 2rem;
+}
+
+.btn {
+  padding: 1rem 2.5rem;
+  border: none;
+  border-radius: 12px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 200px;
+  justify-content: center;
+  font-family: inherit;
+}
+
+.btn-primary {
+  background: var(--gradient-primary);
+  color: var(--text-inverse);
+  box-shadow: var(--shadow-medium);
+}
+
+.btn-primary:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-heavy);
+}
+
+.btn-outline {
+  background: transparent;
+  color: var(--accent-primary);
+  border: 2px solid var(--accent-primary);
+}
+
+.btn-outline:hover {
+  background: var(--accent-primary);
+  color: var(--text-inverse);
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-medium);
+}
+
+/* Responsive */
 @media (max-width: 768px) {
-  .home-container {
-    padding: 1rem;
-  }
-  
   .hero-section h1 {
-    font-size: 2rem;
+    font-size: 2.5rem;
   }
   
-  .mode-selection {
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
+  .hero-section p {
+    font-size: 1.1rem;
   }
   
-  .mode-card {
-    padding: 1.5rem;
+  .action-buttons {
+    flex-direction: column;
+    align-items: center;
   }
   
-  .modal-content {
-    padding: 2rem;
-    margin: 1rem;
-  }
-  
-  .modal-content h2 {
-    font-size: 2rem;
-  }
-  
-  .topic-options {
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
+  .btn {
+    min-width: 280px;
   }
 }

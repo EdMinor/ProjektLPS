@@ -2,12 +2,13 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
 import { ApiService } from '../../../core/services/api.service';
+import { HeaderComponent, BreadcrumbItem } from '../../../shared/components/header/header.component';
 import { Catalog, Topic } from '../../../core/models';
 
 @Component({
   selector: 'app-catalog-list',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, HeaderComponent],
   templateUrl: './catalog-list.component.html',
   styleUrl: './catalog-list.component.css'
 })
@@ -18,6 +19,12 @@ export class CatalogListComponent implements OnInit {
   selectedTopic: string | null = null;
   loading = true;
   error: string | null = null;
+
+  // Breadcrumbs for header
+  breadcrumbs: BreadcrumbItem[] = [
+    { label: 'Startseite', route: '/home' },
+    { label: 'Kataloge', active: true }
+  ];
 
   constructor(
     private apiService: ApiService,
@@ -64,18 +71,28 @@ export class CatalogListComponent implements OnInit {
     });
   }
 
-  filterCatalogs(): void {
-    if (!this.selectedTopic) {
-      this.catalogs = this.allCatalogs;
-      return;
-    }
+  filterByTopic(topic: string): void {
+    this.selectedTopic = topic;
+    this.filterCatalogs();
+  }
 
-    if (this.selectedTopic === '101') {
-      this.catalogs = this.allCatalogs.filter(cat => cat.topicId === 1);
-    } else if (this.selectedTopic === '102') {
-      this.catalogs = this.allCatalogs.filter(cat => cat.topicId === 2);
+  clearFilter(): void {
+    this.selectedTopic = null;
+    this.loadCatalogs();
+  }
+
+  private filterCatalogs(): void {
+    if (!this.selectedTopic || this.selectedTopic === 'all') {
+      this.catalogs = [...this.allCatalogs];
     } else {
-      this.catalogs = this.allCatalogs;
+      this.catalogs = this.allCatalogs.filter(catalog => {
+        if (this.selectedTopic === '101') {
+          return catalog.topicId === 1;
+        } else if (this.selectedTopic === '102') {
+          return catalog.topicId === 2;
+        }
+        return true;
+      });
     }
   }
 
@@ -85,15 +102,8 @@ export class CatalogListComponent implements OnInit {
   }
 
   selectCatalog(catalog: Catalog): void {
-    this.router.navigate(['/learn/catalogs', catalog.id]);
-  }
-
-  goBack(): void {
-    this.router.navigate(['/home']);
-  }
-
-  clearFilter(): void {
-    this.selectedTopic = null;
-    this.filterCatalogs();
+    this.router.navigate(['/learn/questions', 0], { 
+      queryParams: { catalogId: catalog.id } 
+    });
   }
 }
