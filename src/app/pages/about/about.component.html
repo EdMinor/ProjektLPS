@@ -1,0 +1,59 @@
+<app-header [breadcrumbs]="breadcrumbs"></app-header>
+
+<div class="about-container">
+  <div class="about-content">
+    <div class="about-header">
+      <h1>Über die App</h1>
+      <p class="subtitle">Lern- und Simulationsplattform für IT-Zertifizierungen</p>
+    </div>
+
+    <div class="about-sections">
+      <section class="about-section">
+        <h2>🎯 Was ist diese App?</h2>
+        <p>
+          Diese Anwendung ist eine moderne Lernplattform, die speziell für IT-Zertifizierungen entwickelt wurde. 
+          Sie bietet sowohl einen Lernmodus zum Üben von Fragen als auch einen Simulationsmodus, der echte 
+          Prüfungssituationen nachstellt.
+        </p>
+      </section>
+
+      <section class="about-section">
+        <h2>🚀 Features</h2>
+        <ul>
+          <li><strong>Lernmodus:</strong> Üben Sie Fragen in Ihrem eigenen Tempo mit sofortigem Feedback</li>
+          <li><strong>Simulationsmodus:</strong> Simulieren Sie echte Prüfungssituationen mit Zeitlimit</li>
+          <li><strong>Verschiedene Fragetypen:</strong> Single Choice, Multiple Choice und Fill-in Fragen</li>
+          <li><strong>Fortschrittsverfolgung:</strong> Behalten Sie den Überblick über Ihren Lernfortschritt</li>
+          <li><strong>Responsive Design:</strong> Funktioniert auf allen Geräten - Desktop, Tablet und Smartphone</li>
+        </ul>
+      </section>
+
+      <section class="about-section">
+        <h2>💻 Technologie</h2>
+        <p>
+          Diese App wurde mit modernen Webtechnologien entwickelt:
+        </p>
+        <ul>
+          <li><strong>Frontend:</strong> Angular 17 (Standalone Components)</li>
+          <li><strong>Styling:</strong> CSS3 mit CSS-Variablen für konsistentes Design</li>
+          <li><strong>Architektur:</strong> Modulare Komponenten-Architektur</li>
+          <li><strong>Responsive:</strong> Mobile-First Design-Ansatz</li>
+        </ul>
+      </section>
+
+      <section class="about-section">
+        <h2>📚 Verwendung</h2>
+        <p>
+          Wählen Sie einen Katalog aus dem Lernbereich und beginnen Sie mit dem Üben. 
+          Im Simulationsmodus können Sie Ihre Prüfungsfähigkeiten unter realistischen Bedingungen testen.
+        </p>
+      </section>
+    </div>
+
+    <div class="about-actions">
+      <button class="btn btn-primary" (click)="goBack()">
+        ← Zurück zur Startseite
+      </button>
+    </div>
+  </div>
+</div>

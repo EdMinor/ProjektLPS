@@ -1,0 +1,167 @@
+.impressum-container {
+  max-width: 800px;
+  margin: 80px auto 0 auto;
+  padding: 2rem 1rem;
+  min-height: calc(100vh - 80px);
+}
+
+.impressum-content {
+  background: var(--bg-card);
+  border-radius: 20px;
+  box-shadow: var(--shadow-heavy);
+  border: 1px solid var(--border-primary);
+  overflow: hidden;
+}
+
+.impressum-header {
+  background: var(--bg-secondary);
+  padding: 3rem 2rem;
+  text-align: center;
+  border-bottom: 1px solid var(--border-primary);
+}
+
+.impressum-header h1 {
+  font-size: 2.5rem;
+  color: var(--text-primary);
+  margin: 0 0 1rem 0;
+  font-weight: 700;
+}
+
+.subtitle {
+  font-size: 1.2rem;
+  color: var(--text-secondary);
+  margin: 0;
+  font-weight: 500;
+}
+
+.impressum-sections {
+  padding: 2rem;
+}
+
+.impressum-section {
+  margin-bottom: 2.5rem;
+}
+
+.impressum-section:last-child {
+  margin-bottom: 0;
+}
+
+.impressum-section h2 {
+  font-size: 1.5rem;
+  color: var(--text-primary);
+  margin: 0 0 1rem 0;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.impressum-section p {
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin: 0 0 1rem 0;
+}
+
+.impressum-section ul {
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin: 0 0 1rem 0;
+  padding-left: 1.5rem;
+}
+
+.impressum-section li {
+  margin-bottom: 0.5rem;
+}
+
+.impressum-section strong {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.company-info,
+.development-info,
+.tech-info,
+.purpose-info,
+.privacy-info {
+  background: var(--bg-tertiary);
+  padding: 1.5rem;
+  border-radius: 12px;
+  border: 1px solid var(--border-secondary);
+}
+
+.impressum-actions {
+  padding: 2rem;
+  text-align: center;
+  border-top: 1px solid var(--border-primary);
+  background: var(--bg-secondary);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+}
+
+.btn-primary {
+  background: var(--gradient-primary);
+  color: white;
+  border: 2px solid transparent;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-medium);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .impressum-container {
+    padding: 1rem;
+  }
+  
+  .impressum-header {
+    padding: 2rem 1.5rem;
+  }
+  
+  .impressum-header h1 {
+    font-size: 2rem;
+  }
+  
+  .impressum-sections {
+    padding: 1.5rem;
+  }
+  
+  .impressum-actions {
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .impressum-header h1 {
+    font-size: 1.75rem;
+  }
+  
+  .subtitle {
+    font-size: 1rem;
+  }
+  
+  .impressum-section h2 {
+    font-size: 1.25rem;
+  }
+  
+  .company-info,
+  .development-info,
+  .tech-info,
+  .purpose-info,
+  .privacy-info {
+    padding: 1rem;
+  }
+}

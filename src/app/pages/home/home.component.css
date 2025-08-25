@@ -2,7 +2,7 @@
   max-width: 1200px;
   margin: 80px auto 0 auto;
   padding: 2rem 1rem;
-  min-height: 100vh;
+  /* min-height: 100vh; */
   background: var(--bg-primary);
 }
 
