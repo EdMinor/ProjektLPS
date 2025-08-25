@@ -2,100 +2,100 @@
 <app-header [breadcrumbs]="breadcrumbs"></app-header>
 
 <!-- Main Content -->
-<div class="setup-container">
-  <!-- Main Block Container -->
-  <div class="setup-block">
-    <!-- Block Header -->
-    <div class="block-header">
-      <div class="header-content">
-        <div class="header-left">
-          <h1>🎯 Simulation starten</h1>
-          <p>Konfiguriere deine Simulation und starte den Test</p>
+<div class="catalog-list-container">
+  <!-- Compact Header with Filters -->
+  <div class="compact-header">
+    <div class="header-left">
+      <h1>🎯 Simulation starten</h1>
+      <p *ngIf="!selectedTopic">Wähle einen Katalog aus, um eine Simulation zu starten</p>
+      <p *ngIf="selectedTopic">{{ catalogs.length }} Katalog{{ catalogs.length !== 1 ? 'e' : '' }} verfügbar</p>
+    </div>
+    
+    <div class="header-right">
+      <!-- Topic Filter Buttons -->
+      <div class="filter-buttons">
+        <button 
+          class="filter-btn" 
+          [class.active]="selectedTopic === '101'"
+          (click)="filterByTopic('101')"
+        >
+          LPIC-101
+        </button>
+        <button 
+          class="filter-btn" 
+          [class.active]="selectedTopic === '102'"
+          (click)="filterByTopic('102')"
+        >
+          LPIC-102
+        </button>
+        <button 
+          class="filter-btn" 
+          [class.active]="selectedTopic === 'all'"
+          (click)="filterByTopic('all')"
+        >
+          Alle Themen
+        </button>
+      </div>
+      
+      <!-- Clear Filter Button -->
+      <button 
+        *ngIf="selectedTopic" 
+        class="clear-filter-btn" 
+        (click)="clearFilter()"
+      >
+        Filter löschen
+      </button>
+    </div>
+  </div>
+
+  <!-- Content -->
+  <div class="content">
+    <div *ngIf="isLoading" class="loading">
+      <div class="spinner"></div>
+      <p>Lade Kataloge...</p>
+    </div>
+
+    <app-error-handler 
+      *ngIf="error" 
+      [error]="error"
+      (onRetry)="onRetry()"
+      (onGoHome)="onGoHome()">
+    </app-error-handler>
+
+    <!-- Compact Catalog Grid -->
+    <div *ngIf="!isLoading && !error" class="catalogs-grid">
+      <div 
+        *ngFor="let catalog of catalogs" 
+        class="catalog-card"
+        (click)="selectCatalogForSimulation(catalog)"
+      >
+        <div class="catalog-header">
+          <h3>{{ catalog.title }}</h3>
+          <span class="catalog-code">{{ catalog.code }}</span>
         </div>
-        
-        <div class="header-right">
-          <!-- Konfiguration Info -->
-          <div class="config-info">
-            <span class="config-summary">
-              {{ getConfigSummary() }}
-            </span>
-            <button class="config-modal-btn" (click)="openConfigModal()">
-              ⚙️ Konfigurieren
-            </button>
-          </div>
+        <div class="catalog-info">
+          <p class="question-count">{{ catalog.questionCount }} Fragen</p>
+          <p class="topic">{{ getTopicName(catalog.topicId) }}</p>
+        </div>
+        <div class="catalog-actions">
+          <button class="start-button">Konfigurieren und starten</button>
         </div>
       </div>
     </div>
 
-    <!-- Block Content -->
-    <div class="block-content">
-      <!-- Loading State -->
-      <div *ngIf="isLoading" class="loading-state">
-        <div class="loading-spinner"></div>
-        <p>Simulation wird vorbereitet...</p>
-      </div>
-
-      <!-- Error State -->
-      <app-error-handler 
-        *ngIf="error" 
-        [error]="error"
-        (onRetry)="onRetry()"
-        (onGoHome)="onGoHome()">
-      </app-error-handler>
-
-      <!-- Setup Form -->
-      <div *ngIf="!isLoading && !error" class="setup-content">
-        <form [formGroup]="setupForm" (ngSubmit)="onSubmit()" class="setup-form">
-          
-          <!-- Katalog Auswahl -->
-          <div class="form-section">
-            <h3>📚 Katalog auswählen</h3>
-            <div class="catalog-selection">
-              <div class="selected-catalog-display" (click)="openCatalogModal()">
-                <div class="catalog-icon">📖</div>
-                <div class="catalog-info">
-                  <h4>{{ getSelectedCatalog()?.title || 'Katalog auswählen' }}</h4>
-                  <p class="catalog-details">
-                    <span class="catalog-code">{{ getSelectedCatalog()?.code || '---' }}</span>
-                    <span class="catalog-topic">{{ getSelectedCatalog() ? getTopicName(getSelectedCatalog()!.topicId) : '---' }}</span>
-                    <span class="catalog-count">{{ getSelectedCatalog() ? getSelectedCatalog()!.questionCount + ' Fragen' : '---' }}</span>
-                  </p>
-                </div>
-                <div class="catalog-arrow">▼</div>
-              </div>
-              <!-- <button type="button" class="btn btn-outline catalog-modal-btn" (click)="openCatalogModal()">
-                📚 Katalog auswählen
-              </button> -->
-            </div>
-          </div>
-
-          <!-- Action Buttons -->
-          <div class="form-actions">
-            <button 
-              type="button" 
-              class="btn btn-outline"
-              (click)="resetForm()"
-            >
-              🔄 Zurücksetzen
-            </button>
-            <!-- <button 
-              type="button" 
-              class="btn btn-outline"
-              (click)="debugFormStatus()"
-            >
-              🐛 Debug
-            </button> -->
-            <button 
-              type="submit" 
-              class="btn btn-primary"
-              [disabled]="!setupForm.valid || isLoading"
-            >
-              <span *ngIf="!isLoading">🚀 Simulation starten</span>
-              <span *ngIf="isLoading">⏳ Wird geladen...</span>
-            </button>
-          </div>
-        </form>
-      </div>
+    <!-- Empty State -->
+    <div *ngIf="!isLoading && !error && catalogs.length === 0" class="empty-state">
+      <div class="empty-icon">🎯</div>
+      <h3>Keine Kataloge gefunden</h3>
+      <p *ngIf="selectedTopic">
+        Für "{{ selectedTopic === '101' ? 'LPIC-101' : selectedTopic === '102' ? 'LPIC-102' : 'Alle Themen' }}" sind derzeit keine Kataloge verfügbar.
+      </p>
+      <p *ngIf="!selectedTopic">
+        Es sind derzeit keine Kataloge verfügbar.
+      </p>
+      <button *ngIf="selectedTopic" (click)="clearFilter()" class="btn btn-outline">
+        Alle Kataloge anzeigen
+      </button>
     </div>
   </div>
 </div>
@@ -104,113 +104,135 @@
 <div *ngIf="showConfigModal" class="modal-overlay" (click)="closeConfigModal()">
   <div class="modal-content" (click)="$event.stopPropagation()">
     <div class="modal-header">
-      <h3>⚙️ Simulation konfigurieren</h3>
-      <button class="modal-close-btn" (click)="closeConfigModal()">×</button>
+      <h2>⚙️ Simulation konfigurieren</h2>
+      <button class="modal-close" (click)="closeConfigModal()">×</button>
     </div>
     
     <div class="modal-body">
-      <div class="config-grid">
-        <!-- Linke Seite: Einstellungen -->
-        <div class="config-left">
-          <!-- Fragenanzahl -->
-          <div class="config-group">
-            <label class="config-label">Anzahl Fragen</label>
-            <div class="button-group">
-              <button 
-                type="button"
-                class="config-btn"
-                [class.active]="setupForm.get('questionCount')?.value === 10"
-                (click)="setQuestionCount(10)"
-              >
-                10
-              </button>
-              <button 
-                type="button"
-                class="config-btn"
-                [class.active]="setupForm.get('questionCount')?.value === 20"
-                (click)="setQuestionCount(20)"
-              >
-                20
-              </button>
-              <button 
-                type="button"
-                class="config-btn"
-                [class.active]="setupForm.get('questionCount')?.value === 60"
-                (click)="setQuestionCount(60)"
-              >
-                60
-              </button>
-              <button 
-                type="button"
-                class="config-btn"
-                [class.active]="setupForm.get('questionCount')?.value === getMaxQuestions()"
-                (click)="setQuestionCount(getMaxQuestions())"
-              >
-                Alle
-              </button>
+      <form [formGroup]="setupForm" (ngSubmit)="onSubmit()" class="setup-form">
+        
+        <!-- Katalog Info (nur Anzeige) -->
+        <div class="form-section">
+          <h3>📚 Ausgewählter Katalog</h3>
+          <div class="selected-catalog-info">
+            <div class="catalog-icon">📖</div>
+            <div class="catalog-info">
+              <h4>{{ getSelectedCatalog()?.title }}</h4>
+              <p class="catalog-details">
+                <span class="catalog-code">{{ getSelectedCatalog()?.code }}</span>
+                <span class="catalog-topic">{{ getTopicName(getSelectedCatalog()!.topicId) }}</span>
+                <span class="catalog-count">{{ getSelectedCatalog()!.questionCount }} Fragen</span>
+              </p>
             </div>
-            <small class="config-hint">
-              Maximal {{ getMaxQuestions() }} Fragen verfügbar
-            </small>
-          </div>
-
-          <!-- Zeitlimit -->
-          <div class="config-group">
-            <label class="config-label">Zeitlimit</label>
-            <div class="button-group">
-              <button 
-                type="button"
-                class="config-btn"
-                [class.active]="setupForm.get('timeLimit')?.value && setupForm.get('timeLimitMinutes')?.value === 2"
-                (click)="setTimeLimit(2)"
-              >
-                2 Min
-              </button>
-              <button 
-                type="button"
-                class="config-btn"
-                [class.active]="setupForm.get('timeLimit')?.value && setupForm.get('timeLimitMinutes')?.value === 10"
-                (click)="setTimeLimit(10)"
-              >
-                10 Min
-              </button>
-              <button 
-                type="button"
-                class="config-btn"
-                [class.active]="setupForm.get('timeLimit')?.value && setupForm.get('timeLimitMinutes')?.value === 60"
-                (click)="setTimeLimit(60)"
-              >
-                60 Min
-              </button>
-              <button 
-                type="button"
-                class="config-btn"
-                [class.active]="setupForm.get('timeLimit')?.value && setupForm.get('timeLimitMinutes')?.value === 90"
-                (click)="setTimeLimit(90)"
-              >
-                90 Min
-              </button>
-              <button 
-                type="button"
-                class="config-btn"
-                [class.active]="!setupForm.get('timeLimit')?.value"
-                (click)="disableTimeLimit()"
-              >
-                Kein Limit
-              </button>
-            </div>
-            <small class="config-hint">
-              Simulation endet automatisch nach Ablauf der Zeit
-            </small>
           </div>
         </div>
 
-        <!-- Rechte Seite: Optionen -->
-        <div class="config-right">
-          <!-- Fragen mischen -->
-          <div class="config-group">
-            <label class="config-label">Fragen mischen</label>
-            <div class="toggle-group">
+        <!-- Anzahl Fragen mit Buttons -->
+        <div class="form-section">
+          <h3>📝 Anzahl Fragen</h3>
+          <div class="button-group">
+            <button 
+              type="button"
+              class="config-btn"
+              [class.active]="setupForm.get('questionCount')?.value === 10"
+              (click)="setQuestionCount(10)"
+            >
+              10
+            </button>
+            <button 
+              type="button"
+              class="config-btn"
+              [class.active]="setupForm.get('questionCount')?.value === 20"
+              (click)="setQuestionCount(20)"
+            >
+              20
+            </button>
+            <button 
+              type="button"
+              class="config-btn"
+              [class.active]="setupForm.get('questionCount')?.value === 40"
+              (click)="setQuestionCount(40)"
+            >
+              40
+            </button>
+            <button 
+              type="button"
+              class="config-btn"
+              [class.active]="setupForm.get('questionCount')?.value === getMaxQuestions()"
+              (click)="setQuestionCount(getMaxQuestions())"
+            >
+              Alle
+            </button>
+          </div>
+          <span class="form-hint">
+            Maximal {{ getMaxQuestions() }} Fragen verfügbar
+          </span>
+        </div>
+
+        <!-- Zeitlimit mit Buttons -->
+        <div class="form-section">
+          <h3>⏱️ Zeitlimit</h3>
+          <div class="button-group">
+            <button 
+              type="button"
+              class="config-btn"
+              [class.active]="!setupForm.get('timeLimit')?.value"
+              (click)="disableTimeLimit()"
+            >
+              Kein Limit
+            </button>
+            <button 
+              type="button"
+              class="config-btn"
+              [class.active]="setupForm.get('timeLimit')?.value && setupForm.get('timeLimitMinutes')?.value === 2"
+              (click)="setTimeLimit(2)"
+            >
+              2 Min
+            </button>
+            <button 
+              type="button"
+              class="config-btn"
+              [class.active]="setupForm.get('timeLimit')?.value && setupForm.get('timeLimitMinutes')?.value === 30"
+              (click)="setTimeLimit(30)"
+            >
+              30 Min
+            </button>
+            <button 
+              type="button"
+              class="config-btn"
+              [class.active]="setupForm.get('timeLimit')?.value && setupForm.get('timeLimitMinutes')?.value === 60"
+              (click)="setTimeLimit(60)"
+            >
+              60 Min
+            </button>
+            <button 
+              type="button"
+              class="config-btn"
+              [class.active]="setupForm.get('timeLimit')?.value && setupForm.get('timeLimitMinutes')?.value === 90"
+              (click)="setTimeLimit(90)"
+            >
+              90 Min
+            </button>
+            <button 
+              type="button"
+              class="config-btn"
+              [class.active]="setupForm.get('timeLimit')?.value && setupForm.get('timeLimitMinutes')?.value === 120"
+              (click)="setTimeLimit(120)"
+            >
+              120 Min
+            </button>
+          </div>
+          <span class="form-hint">
+            Simulation endet automatisch nach Ablauf der Zeit
+          </span>
+        </div>
+
+        <!-- Fragen/Antworten mischen -->
+        <div class="form-section">
+          <h3>🔀 Mischen</h3>
+          <div class="toggle-group">
+            <div class="toggle-item">
+              <label class="toggle-label">Fragen mischen</label>
               <button 
                 type="button"
                 class="toggle-btn"
@@ -219,16 +241,11 @@
               >
                 {{ setupForm.get('shuffleQuestions')?.value ? '✅ Aktiv' : '❌ Inaktiv' }}
               </button>
-              <small class="config-hint">
-                Fragen werden in zufälliger Reihenfolge angezeigt
-              </small>
+              <span class="toggle-hint">Fragen werden in zufälliger Reihenfolge angezeigt</span>
             </div>
-          </div>
-
-          <!-- Optionen mischen -->
-          <div class="config-group" *ngIf="setupForm.get('shuffleQuestions')?.value">
-            <label class="config-label">Antwortoptionen mischen</label>
-            <div class="toggle-group">
+            
+            <div class="toggle-item" *ngIf="setupForm.get('shuffleQuestions')?.value">
+              <label class="toggle-label">Antwortoptionen mischen</label>
               <button 
                 type="button"
                 class="toggle-btn"
@@ -237,92 +254,60 @@
               >
                 {{ setupForm.get('shuffleOptions')?.value ? '✅ Aktiv' : '❌ Inaktiv' }}
               </button>
-              <small class="config-hint">
-                Antwortoptionen werden in zufälliger Reihenfolge angezeigt
-              </small>
+              <span class="toggle-hint">Antwortoptionen werden in zufälliger Reihenfolge angezeigt</span>
             </div>
           </div>
-
-          <!-- Seed verwenden -->
-          <!-- <div class="config-group" *ngIf="setupForm.get('shuffleQuestions')?.value">
-            <label class="config-label">Reproduzierbare Reihenfolge</label>
-            <div class="toggle-group">
-              <button 
-                type="button"
-                class="toggle-btn"
-                [class.active]="setupForm.get('useSeed')?.value"
-                (click)="toggleUseSeed()"
-              >
-                {{ setupForm.get('useSeed')?.value ? '✅ Aktiv' : '❌ Inaktiv' }}
-              </button>
-              <small class="config-hint">
-                Gleiche Einstellungen ergeben immer gleiche Reihenfolge
-              </small>
-            </div>
-          </div> -->
         </div>
-      </div>
-    </div>
-    
-    <div class="modal-footer">
-      <button class="btn btn-outline" (click)="closeConfigModal()">Abbrechen</button>
-      <button class="btn btn-primary" (click)="closeConfigModal()">Übernehmen</button>
+
+        <!-- Action Buttons -->
+        <div class="form-actions">
+          <button 
+            type="button" 
+            class="btn btn-outline"
+            (click)="resetForm()"
+          >
+            🔄 Zurücksetzen
+          </button>
+          <button 
+            type="submit" 
+            class="btn btn-primary"
+            [disabled]="!setupForm.valid || isLoading"
+          >
+            <span *ngIf="!isLoading">🚀 Simulation starten</span>
+            <span *ngIf="isLoading">⏳ Wird geladen...</span>
+          </button>
+        </div>
+      </form>
     </div>
   </div>
 </div>
 
-<!-- Katalog Auswahl Modal -->
-<div class="modal-overlay" *ngIf="showCatalogModal" (click)="closeCatalogModal()">
+<!-- Catalog Selection Modal -->
+<div *ngIf="showCatalogModal" class="modal-overlay" (click)="closeCatalogModal()">
   <div class="modal-content catalog-modal" (click)="$event.stopPropagation()">
     <div class="modal-header">
-      <div class="header-left">
-        <h2>📚 Katalog auswählen</h2>
-      </div>
-      
-      <div class="header-right">
-        <!-- Topic Filter -->
-        <div class="catalog-filter">
-          <div class="filter-buttons">
-            <button class="filter-btn" [class.active]="selectedTopic === '101'" (click)="filterByTopic('101')">LPIC-101</button>
-            <button class="filter-btn" [class.active]="selectedTopic === '102'" (click)="filterByTopic('102')">LPIC-102</button>
-            <button class="filter-btn" [class.active]="selectedTopic === 'all'" (click)="filterByTopic('all')">Alle Themen</button>
-          </div>
-          
-        </div>
-      </div>
+      <h2>📚 Katalog auswählen</h2>
+      <button class="modal-close" (click)="closeCatalogModal()">×</button>
     </div>
     
     <div class="modal-body">
-      
-      <!-- Catalog Grid -->
-      <div class="catalog-grid">
-        <!-- Catalog Cards -->
+      <div class="catalog-list">
         <div 
-          *ngFor="let catalog of catalogs" 
-          class="catalog-card"
-          [class.selected]="setupForm.get('catalogId')?.value === catalog.id"
-          (click)="selectCatalog(catalog.id)"
+          *ngFor="let catalog of allCatalogs" 
+          class="catalog-item"
+          [class.selected]="isCatalogSelected(catalog)"
+          (click)="selectCatalog(catalog)"
         >
-          <div class="catalog-header">
-            <div class="catalog-icon">📖</div>
-            <div class="catalog-check" *ngIf="setupForm.get('catalogId')?.value === catalog.id">✅</div>
+          <div class="catalog-item-header">
+            <h4>{{ catalog.title }}</h4>
+            <span class="catalog-item-code">{{ catalog.code }}</span>
           </div>
-          <div class="catalog-content">
-            <h3>{{ catalog.title }}</h3>
-            <div class="catalog-meta">
-              <span class="catalog-code">{{ catalog.code }}</span>
-              <span class="catalog-topic">{{ getTopicName(catalog.topicId) }}</span>
-              <span class="catalog-count">{{ catalog.questionCount }} Fragen</span>
-            </div>
+          <div class="catalog-item-info">
+            <span class="catalog-item-topic">{{ getTopicName(catalog.topicId) }}</span>
+            <span class="catalog-item-count">{{ catalog.questionCount }} Fragen</span>
           </div>
         </div>
-
       </div>
-    </div>
-    
-    <div class="modal-footer">
-      <button class="btn btn-outline" (click)="closeCatalogModal()">Abbrechen</button>
-      <!-- <button class="btn btn-primary" (click)="closeCatalogModal()">Bestätigen</button> -->
     </div>
   </div>
 </div>

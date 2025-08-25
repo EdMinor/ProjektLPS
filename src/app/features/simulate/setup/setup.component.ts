@@ -31,7 +31,7 @@ export class SimulationSetupComponent implements OnInit {
 
   // Breadcrumbs for header
   breadcrumbs: BreadcrumbItem[] = [
-    { label: 'Startseite', route: '/' },
+    { label: 'Startseite', route: '/home' },
     { label: 'Simulation', route: '/simulate/setup' },
     { label: 'Setup', active: true }
   ];
@@ -112,7 +112,7 @@ export class SimulationSetupComponent implements OnInit {
 
 
       // Initialize catalogs based on current filter
-      this.filterCatalogs();
+      this.filterByTopic('all');
 
       // Setze den ersten Katalog als Standard
       if (this.catalogs.length > 0) {
@@ -251,8 +251,8 @@ export class SimulationSetupComponent implements OnInit {
   }
 
   // New methods for the updated UI
-  selectCatalog(catalogId: number): void {
-    this.setupForm.patchValue({ catalogId });
+  selectCatalog(catalog: Catalog): void {
+    this.setupForm.patchValue({ catalogId: catalog.id });
     this.updateMaxQuestions();
     this.showCatalogModal = false; // Close modal after selection
   }
@@ -316,22 +316,14 @@ export class SimulationSetupComponent implements OnInit {
   // Topic filtering methods
   filterByTopic(topic: string): void {
     this.selectedTopic = topic;
-    this.filterCatalogs();
-  }
-
-  clearFilter(): void {
-    this.selectedTopic = null;
-    this.filterCatalogs();
-  }
-
-  private filterCatalogs(): void {
-    if (!this.selectedTopic || this.selectedTopic === 'all') {
-      // Alle Kataloge anzeigen
-      this.catalogs = this.allCatalogs;
+    if (topic === 'all') {
+      this.catalogs = this.allCatalogs.filter(catalog => catalog.questionCount > 0);
     } else {
       // Filtere Kataloge nach Thema
-      const topicId = this.selectedTopic === '101' ? 1 : 2;
-      this.catalogs = this.allCatalogs.filter(catalog => catalog.topicId === topicId);
+      const topicId = topic === '101' ? 1 : 2;
+      this.catalogs = this.allCatalogs.filter(catalog => 
+        catalog.topicId === topicId && catalog.questionCount > 0
+      );
     }
     
     // Überprüfe, ob der aktuell ausgewählte Katalog noch verfügbar ist
@@ -349,6 +341,11 @@ export class SimulationSetupComponent implements OnInit {
     }
   }
 
+  clearFilter(): void {
+    this.selectedTopic = null;
+    this.catalogs = this.allCatalogs.filter(catalog => catalog.questionCount > 0);
+  }
+
   // Modal methods
   openConfigModal(): void {
     this.showConfigModal = true;
@@ -356,6 +353,19 @@ export class SimulationSetupComponent implements OnInit {
 
   closeConfigModal(): void {
     this.showConfigModal = false;
+  }
+
+  // New methods for catalog selection
+  selectCatalogForSimulation(catalog: Catalog): void {
+    this.setupForm.patchValue({
+      catalogId: catalog.id,
+      questionCount: Math.min(20, catalog.questionCount)
+    });
+    this.openConfigModal();
+  }
+
+  isCatalogSelected(catalog: Catalog): boolean {
+    return this.setupForm.get('catalogId')?.value === catalog.id;
   }
 
   // Catalog modal methods
@@ -366,6 +376,8 @@ export class SimulationSetupComponent implements OnInit {
   closeCatalogModal(): void {
     this.showCatalogModal = false;
   }
+
+
 
   // Configuration summary method
   getConfigSummary(): string {
