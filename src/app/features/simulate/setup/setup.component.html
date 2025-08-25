@@ -36,13 +36,12 @@
       </div>
 
       <!-- Error State -->
-      <div *ngIf="error" class="error-state">
-        <div class="error-icon">⚠️</div>
-        <p>{{ error }}</p>
-        <button class="btn btn-outline" (click)="loadData()">
-          Erneut versuchen
-        </button>
-      </div>
+      <app-error-handler 
+        *ngIf="error" 
+        [error]="error"
+        (onRetry)="onRetry()"
+        (onGoHome)="onGoHome()">
+      </app-error-handler>
 
       <!-- Setup Form -->
       <div *ngIf="!isLoading && !error" class="setup-content">
@@ -79,6 +78,13 @@
             >
               🔄 Zurücksetzen
             </button>
+            <!-- <button 
+              type="button" 
+              class="btn btn-outline"
+              (click)="debugFormStatus()"
+            >
+              🐛 Debug
+            </button> -->
             <button 
               type="submit" 
               class="btn btn-primary"

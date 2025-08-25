@@ -26,7 +26,7 @@
         <div class="progress-fill" [style.width.%]="(answeredQuestions.size / questions.length) * 100"></div>
       </div>
       
-      <!-- Question Navigation Dots in Header -->
+      <!-- Question Navigation Dots in Header --
       <div class="question-navigation">
         <div 
           *ngFor="let question of questions; let i = index"
@@ -37,7 +37,9 @@
           [class.incorrect]="answeredQuestions.has(i) && !answeredQuestions.get(i)?.isCorrect"
           (click)="goToQuestion(i)"
         ></div>
-      </div>
+      </div> -->
+      
+      
     </div>
 
     <!-- Block Content -->
@@ -49,13 +51,12 @@
       </div>
 
       <!-- Error State -->
-      <div *ngIf="error" class="error-state">
-        <div class="error-icon">⚠️</div>
-        <p>{{ error }}</p>
-        <button class="btn btn-outline" (click)="loadCatalogAndQuestions()">
-          Erneut versuchen
-        </button>
-      </div>
+      <app-error-handler 
+        *ngIf="error" 
+        [error]="error"
+        (onRetry)="onRetry()"
+        (onGoHome)="onGoHome()">
+      </app-error-handler>
 
       <!-- Question Content -->
       <div *ngIf="!loading && !error && question" class="question-content">
@@ -176,6 +177,17 @@
             📊 Ergebnisse anzeigen
           </button>
         </div>
+
+        <!-- Abbrechen Button -->
+      <div class="cancel-section">
+        <button 
+          class="btn btn-danger cancel-btn" 
+          (click)="cancelLearning()"
+          title="Lernmodus abbrechen und zur Katalogauswahl zurückkehren"
+        >
+          ❌ Lernen abbrechen
+        </button>
+      </div>
       </div>
     </div>
   </div>

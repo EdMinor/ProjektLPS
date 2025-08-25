@@ -144,6 +144,8 @@
   align-items: center;
   gap: 1rem;
   flex-wrap: wrap;
+  width: 100%;
+  margin-top: 1rem;
 }
 
 .nav-btn {
@@ -163,6 +165,8 @@
   border-color: var(--accent-primary);
   color: var(--accent-primary);
   transform: translateY(-1px);
+  
+  color: var(--text-secondary);
 }
 
 .nav-btn:disabled {
@@ -171,15 +175,69 @@
   transform: none;
 }
 
-.question-dots {
+/* Page Info Styles */
+.page-info {
   display: flex;
+  align-items: center;
   gap: 0.5rem;
-  flex-wrap: wrap;
-  justify-content: center;
-  flex: 1;
+  font-weight: 600;
+  color: var(--text-primary);
+  background: var(--bg-tertiary);
+  padding: 0.75rem 1.5rem;
+  border-radius: 12px;
+  border: 1px solid var(--border-primary);
 }
 
-.question-dot {
+.current-page {
+  font-size: 1.4rem;
+  color: var(--accent-primary);
+  font-weight: 700;
+}
+
+.page-separator {
+  font-size: 1.2rem;
+  color: var(--text-secondary);
+}
+
+.total-pages {
+  font-size: 1.2rem;
+  color: var(--text-secondary);
+}
+
+/* Cancel Button Styles */
+.cancel-section {
+  display: flex;
+  justify-content: center;
+  margin: 1rem 0;
+  margin-top: 1rem;
+  border-top: 1px solid var(--border-primary);
+  padding-top: 2rem;
+}
+
+.cancel-btn {
+  background: #dc3545;
+  color: white;
+  border: 2px solid #dc3545;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.cancel-btn:hover {
+  background: #c82333;
+  border-color: #c82333;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-medium);
+}
+
+/* Quick Navigation Button Styles */
+.quick-nav-controls {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.quick-nav-btn {
   width: 40px;
   height: 40px;
   border: 2px solid var(--border-primary);
@@ -188,36 +246,38 @@
   color: var(--text-secondary);
   cursor: pointer;
   transition: all 0.3s ease;
-  font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 1.1rem;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.question-dot:hover {
+.quick-nav-btn:hover:not(:disabled) {
   border-color: var(--accent-primary);
+  color: var(--accent-primary);
   transform: scale(1.1);
-}
-
-.question-dot.active {
-  background: var(--accent-primary);
-  color: var(--text-inverse);
-  border-color: var(--accent-primary);
   box-shadow: var(--shadow-medium);
 }
 
-.question-dot.answered {
-  border: 3px solid #007bff;
-  background: var(--bg-secondary);
-  color: var(--text-primary);
-  box-shadow: 0 0 0 1px rgba(0, 123, 255, 0.2);
+.quick-nav-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
 }
 
-.question-dot.answered:hover {
-  border-color: #0056b3;
-  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.3);
+/* Touch optimizations */
+@media (hover: none) and (pointer: coarse) {
+  .quick-nav-btn {
+    min-height: 44px; /* Apple's recommended minimum touch target */
+    min-width: 44px;
+  }
+  
+  .nav-btn {
+    min-height: 44px;
+  }
 }
+
+/* Quick Navigation Button Styles */
 
 /* Timer */
 .timer {
@@ -544,6 +604,8 @@
   margin-bottom: 0;
 }
 
+/* Clean Navigation Styles */
+
 /* Responsive */
 @media (max-width: 768px) {
   .simulation-header {
@@ -576,11 +638,100 @@
     gap: 0.3rem;
   }
   
-  .nav-dot {
-    width: 10px;
-    height: 10px;
+  /* Optimize mobile layout */
+  .block-header {
+    padding: 1.5rem;
+  }
+  
+  .header-content {
+    margin-bottom: 1rem;
+  }
+  
+  .header-left h1 {
+    font-size: 1.5rem;
+  }
+  
+  .header-left p {
+    font-size: 1rem;
+  }
+  
+  /* Quick Navigation Controls mobile optimization */
+  .quick-nav-controls {
+    gap: 0.5rem;
+  }
+  
+  .quick-nav-btn {
+    width: 36px;
+    height: 36px;
+    font-size: 1rem;
+  }
+  
+  /* Progress section mobile optimization */
+  .progress-section {
+    margin: 1rem 0;
+  }
+  
+  .progress-text {
+    font-size: 0.9rem;
   }
 }
+
+  /* Extra small devices */
+  @media (max-width: 480px) {
+    .simulation-container {
+      padding: 1rem 0.5rem;
+    }
+    
+    .block-header {
+      padding: 1rem;
+    }
+    
+    .header-content {
+      flex-direction: column;
+      text-align: center;
+      gap: 0.75rem;
+    }
+    
+    .header-right {
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    
+    .timer {
+      min-width: 160px;
+      padding: 0.75rem 1rem;
+    }
+    
+    .question-navigation {
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    
+    .nav-btn {
+      min-width: 120px;
+      padding: 0.75rem 0.5rem;
+      font-size: 0.85rem;
+    }
+    
+    .page-info {
+      font-size: 0.9rem;
+      padding: 0.5rem 1rem;
+    }
+    
+    .current-page {
+      font-size: 1.1rem;
+    }
+    
+    .quick-nav-controls {
+      gap: 0.5rem;
+    }
+    
+    .quick-nav-btn {
+      width: 32px;
+      height: 32px;
+      font-size: 0.9rem;
+    }
+  }
 
 /* Results Modal */
 .results-modal-overlay {

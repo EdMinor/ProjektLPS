@@ -1,14 +1,15 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
-import { ApiService } from '../../../core/services/api.service';
+import { ApiService, ApiError } from '../../../core/services/api.service';
 import { HeaderComponent, BreadcrumbItem } from '../../../shared/components/header/header.component';
+import { ErrorHandlerComponent } from '../../../shared/components/error-handler/error-handler.component';
 import { Catalog, Topic } from '../../../core/models';
 
 @Component({
   selector: 'app-catalog-list',
   standalone: true,
-  imports: [CommonModule, HeaderComponent],
+  imports: [CommonModule, HeaderComponent, ErrorHandlerComponent],
   templateUrl: './catalog-list.component.html',
   styleUrl: './catalog-list.component.css'
 })
@@ -18,7 +19,7 @@ export class CatalogListComponent implements OnInit {
   topics: Topic[] = [];
   selectedTopic: string | null = null;
   loading = true;
-  error: string | null = null;
+  error: ApiError | null = null;
 
   // Breadcrumbs for header
   breadcrumbs: BreadcrumbItem[] = [
@@ -63,8 +64,8 @@ export class CatalogListComponent implements OnInit {
         this.filterCatalogs();
         this.loading = false;
       },
-      error: (error) => {
-        this.error = 'Fehler beim Laden der Kataloge';
+      error: (error: ApiError) => {
+        this.error = error;
         this.loading = false;
         console.error('Error loading catalogs:', error);
       }
@@ -105,5 +106,13 @@ export class CatalogListComponent implements OnInit {
     this.router.navigate(['/learn/questions', 0], { 
       queryParams: { catalogId: catalog.id } 
     });
+  }
+
+  onRetry(): void {
+    this.loadCatalogs();
+  }
+
+  onGoHome(): void {
+    this.router.navigate(['/home']);
   }
 }

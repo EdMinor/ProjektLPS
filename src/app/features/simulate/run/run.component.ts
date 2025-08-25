@@ -59,6 +59,20 @@ export class RunComponent implements OnInit, OnDestroy {
     { label: 'Läuft', active: true }
   ];
 
+  // Math functions for template
+  Math = Math;
+
+  // Navigation helper methods
+  goToPreviousFive(): void {
+    const targetIndex = Math.max(0, this.currentQuestionIndex - 5);
+    this.goToQuestion(targetIndex);
+  }
+
+  goToNextFive(): void {
+    const targetIndex = Math.min(this.totalQuestions - 1, this.currentQuestionIndex + 5);
+    this.goToQuestion(targetIndex);
+  }
+
   constructor(
     private simulationStore: SimulationStoreService,
     private timerService: TimerService,
@@ -401,6 +415,14 @@ export class RunComponent implements OnInit, OnDestroy {
   startNewSimulation(): void {
     this.simulationStore.clearSimulation();
     this.router.navigate(['/simulate/setup']);
+  }
+  
+  // Abbrechen-Methode
+  cancelSimulation(): void {
+    if (confirm('Möchten Sie die Simulation wirklich abbrechen? Alle bisherigen Antworten gehen verloren.')) {
+      this.simulationStore.clearSimulation();
+      this.router.navigate(['/simulate/setup']);
+    }
   }
 
   // Results Data

@@ -64,7 +64,9 @@
           </div>
         </div>
         
-        <!-- Question Navigation Dots integrated in header -->
+        
+        
+        <!-- Simple Question Navigation --
         <div class="question-navigation">
           <button 
             class="btn btn-outline nav-btn" 
@@ -73,16 +75,31 @@
           >
             ← Zurück
           </button>
+        -->
+          <!-- Page Info --
+          <div class="page-info">
+            <span class="current-page">{{ currentQuestionIndex + 1 }}</span>
+            <span class="page-separator">/</span>
+            <span class="total-pages">{{ totalQuestions }}</span>
+          </div> -->
           
-          <div class="question-dots">
+          <!-- Quick Navigation --
+          <div class="quick-nav-controls">
             <button 
-              *ngFor="let question of [].constructor(totalQuestions); let i = index"
-              class="question-dot"
-              [class.active]="i === currentQuestionIndex"
-              [class.answered]="isQuestionAnsweredByIndex(i)"
-              (click)="goToQuestion(i)"
+              class="quick-nav-btn"
+              (click)="goToPreviousFive()"
+              [disabled]="currentQuestionIndex <= 0"
+              title="5 Fragen zurück"
             >
-              {{ i + 1 }}
+              ⏪
+            </button>
+            <button 
+              class="quick-nav-btn"
+              (click)="goToNextFive()"
+              [disabled]="currentQuestionIndex >= totalQuestions - 1"
+              title="5 Fragen vor"
+            >
+              ⏩
             </button>
           </div>
           
@@ -93,7 +110,7 @@
           >
             Weiter →
           </button>
-        </div>
+        </div> -->
       </div>
 
       <!-- Block Content -->
@@ -246,13 +263,23 @@
         </div>
 
         <!-- Simulation Info -->
-        <div class="simulation-info">
+        <!-- <div class="simulation-info">
           <div class="info-card">
             <h3>Simulation-Info</h3>
             <p><strong>Zeit verbraucht:</strong> {{ formatTime(timerState?.timeSpent || 0) }}</p>
             <p><strong>Status:</strong> {{ isPaused ? 'Pausiert' : 'Aktiv' }}</p>
             <p><strong>Fragen beantwortet:</strong> {{ progress.current }} / {{ progress.total }}</p>
           </div>
+        </div> -->
+        <!-- Abbrechen Button -->
+        <div class="cancel-section">
+          <button 
+            class="btn btn-danger cancel-btn" 
+            (click)="cancelSimulation()"
+            title="Simulation abbrechen und zur Setup-Seite zurückkehren"
+          >
+            ❌ Simulation abbrechen
+          </button>
         </div>
       </div>
     </div>

@@ -2,14 +2,15 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
-import { ApiService } from '../../../core/services/api.service';
+import { ApiService, ApiError } from '../../../core/services/api.service';
 import { HeaderComponent, BreadcrumbItem } from '../../../shared/components/header/header.component';
+import { ErrorHandlerComponent } from '../../../shared/components/error-handler/error-handler.component';
 import { Question, Catalog } from '../../../core/models';
 
 @Component({
   selector: 'app-question-detail',
   standalone: true,
-  imports: [CommonModule, FormsModule, HeaderComponent],
+  imports: [CommonModule, FormsModule, HeaderComponent, ErrorHandlerComponent],
   templateUrl: './question-detail.component.html',
   styleUrl: './question-detail.component.css'
 })
@@ -20,7 +21,7 @@ export class QuestionDetailComponent implements OnInit {
   catalogId: number | null = null;
   questions: Question[] = [];
   loading = true;
-  error: string | null = null;
+  error: ApiError | null = null;
 
   // Answer management
   selectedAnswers: string[] = [];
@@ -61,7 +62,11 @@ export class QuestionDetailComponent implements OnInit {
     if (this.catalogId) {
       this.loadCatalogAndQuestions();
     } else {
-      this.error = 'Kein Katalog ausgewählt';
+      this.error = {
+        message: 'Kein Katalog ausgewählt',
+        type: 'not_found',
+        retryable: false
+      };
       this.loading = false;
     }
   }
@@ -75,8 +80,8 @@ export class QuestionDetailComponent implements OnInit {
         this.updateBreadcrumbs();
         this.loadQuestions();
       },
-      error: (error) => {
-        this.error = 'Fehler beim Laden des Katalogs';
+      error: (error: ApiError) => {
+        this.error = error;
         this.loading = false;
         console.error('Error loading catalog:', error);
       }
@@ -114,8 +119,8 @@ export class QuestionDetailComponent implements OnInit {
         this.questions = questions;
         this.loadCurrentQuestion();
       },
-      error: (error) => {
-        this.error = 'Fehler beim Laden der Fragen';
+      error: (error: ApiError) => {
+        this.error = error;
         this.loading = false;
         console.error('Error loading questions:', error);
       }
@@ -124,7 +129,11 @@ export class QuestionDetailComponent implements OnInit {
 
   loadCurrentQuestion(): void {
     if (this.questions.length === 0) {
-      this.error = 'Keine Fragen in diesem Katalog gefunden';
+      this.error = {
+        message: 'Keine Fragen in diesem Katalog gefunden',
+        type: 'not_found',
+        retryable: false
+      };
       this.loading = false;
       return;
     }
@@ -592,6 +601,21 @@ export class QuestionDetailComponent implements OnInit {
           : 'Keine Lösung verfügbar';
       default:
         return 'Keine Lösung verfügbar';
+    }
+  }
+
+  onRetry(): void {
+    this.loadCatalogAndQuestions();
+  }
+
+  onGoHome(): void {
+    this.router.navigate(['/home']);
+  }
+  
+  // Abbrechen-Methode
+  cancelLearning(): void {
+    if (confirm('Möchten Sie den Lernmodus wirklich abbrechen? Alle bisherigen Antworten gehen verloren.')) {
+      this.router.navigate(['/learn/catalogs']);
     }
   }
 }

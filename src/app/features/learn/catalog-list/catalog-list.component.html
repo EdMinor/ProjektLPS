@@ -55,10 +55,12 @@
       <p>Lade Kataloge...</p>
     </div>
 
-    <div *ngIf="error" class="error">
-      <p>{{ error }}</p>
-      <button (click)="loadCatalogs()" class="retry-button">Erneut versuchen</button>
-    </div>
+    <app-error-handler 
+      *ngIf="error" 
+      [error]="error"
+      (onRetry)="onRetry()"
+      (onGoHome)="onGoHome()">
+    </app-error-handler>
 
     <!-- Compact Catalog Grid -->
     <div *ngIf="!loading && !error" class="catalogs-grid">
