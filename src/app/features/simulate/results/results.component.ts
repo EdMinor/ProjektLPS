@@ -2,13 +2,13 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { SimulationStoreService } from '../../../core/services/simulation-store.service';
-import { HeaderComponent, BreadcrumbItem } from '../../../shared/components/header/header.component';
+import { BreadcrumbItem } from '../../../shared/components/header/header.component';
 import { SimulationResult, Question, SimulationAnswer } from '../../../core/models';
 
 @Component({
   selector: 'app-simulation-results',
   standalone: true,
-  imports: [CommonModule, HeaderComponent],
+  imports: [CommonModule],
   templateUrl: './results.component.html',
   styleUrls: ['./results.component.css']
 })
