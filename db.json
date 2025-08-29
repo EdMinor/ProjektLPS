@@ -11,13 +11,6 @@
   ],
   "catalogs": [
     {
-      "id": 99,
-      "topicId": 1,
-      "code": "leer1",
-      "title": "LEER KAT 1",
-      "questionCount": 0
-    },
-    {
       "id": 100,
       "topicId": 1,
       "code": "lpic101a",
@@ -100,13 +93,6 @@
       "code": "lpic102g",
       "title": "LPIC 102 - Block G",
       "questionCount": 90
-    },
-    {
-      "id": 112,
-      "topicId": 1,
-      "code": "TEST",
-      "title": "LPIC TEST",
-      "questionCount": 5
     }
   ],
   "questions": [

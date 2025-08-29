@@ -78,3 +78,72 @@ Für den Produktionsbetrieb wird das Angular-Projekt mit
 ng build --configuration production
 ```  
 gebaut und auf einem Webserver bereitgestellt. Die API wird separat gehostet.
+
+### Schnelltests um Funktionalität zu prüfen
+
+**Schritt 1: Datenbank-Datei öffnen**
+Öffne die Datei `db.json` im Hauptverzeichnis des Projekts.
+
+**Schritt 2: Katalog-Bereich finden**
+Suche nach dem Abschnitt `"catalogs"` in der JSON-Datei.
+
+**Schritt 3: Bestehenden Code ersetzen**
+Ersetze den aktuellen `"catalogs"`-Bereich:
+
+**VORHER (aktueller Code):**
+```json
+"catalogs": [
+    {
+      "id": 100,
+      "topicId": 1,
+      "code": "lpic101a",
+      "title": "LPIC-101 - Block A",
+      "questionCount": 85
+    }
+]
+```
+
+**NACHHER (neuer Test-Code):**
+```json
+"catalogs": [
+    {
+      "id": 98,
+      "topicId": 1,
+      "code": "FUNKTIONEN SCHNELL TEST",
+      "title": "SCHNELL TEST - 5 FRAGEN",
+      "questionCount": 5
+    },
+    {
+      "id": 99,
+      "topicId": 1,
+      "code": "Fehler behandlung TEST",
+      "title": "Leeres Katalog - TEST",
+      "questionCount": 0
+    },
+    {
+      "id": 100,
+      "topicId": 1,
+      "code": "lpic101a",
+      "title": "LPIC-101 - Block A",
+      "questionCount": 85
+    }
+]
+```
+
+**Wichtige Hinweise:**
+- Kopiere den neuen Code **genau** wie abgebildet
+- Achte auf die korrekte JSON-Syntax (Kommas, Anführungszeichen)
+- Der ursprüngliche Katalog mit ID 100 bleibt erhalten
+- Zwei neue Test-Kataloge werden hinzugefügt (ID 98 und 99)
+
+**Schritt 4: Speichern und Testen**
+- Speichere die `db.json`-Datei
+- Starte die Anwendung neu
+- Teste die Funktionalität mit den neuen Test-Katalogen
+
+**Wichtiger Hinweis zu leeren Katalogen:**
+- Leere Kataloge (mit `"questionCount": 0`) werden im **Simulationsmodus** automatisch ausgefiltert und nicht angezeigt
+- Der Test mit dem leeren Katalog (ID 99) ist daher **nur für den Lernmodus** relevant
+- Im Lernmodus können leere Kataloge angezeigt werden, um die Fehlerbehandlung zu testen
+
+
