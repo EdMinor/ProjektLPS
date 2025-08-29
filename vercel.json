@@ -1,0 +1,37 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "src/api/**/*.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist/projekt-lps"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/src/api/$1.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ],
+  "functions": {
+    "src/api/kataloge.js": {
+      "maxDuration": 10
+    },
+    "src/api/themen.js": {
+      "maxDuration": 10
+    },
+    "src/api/fragen.js": {
+      "maxDuration": 10
+    }
+  }
+}
