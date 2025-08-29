@@ -13,13 +13,13 @@ export interface ApiError {
   providedIn: 'root'
 })
 export class ApiService {
-  private readonly baseUrl = '/api';
+  private readonly baseUrl = 'http://localhost:3000/api';
 
   constructor(private http: HttpClient) {}
 
   // Topics
   getTopics(): Observable<Topic[]> {
-    return this.http.get<Topic[]>(`${this.baseUrl}/themen`)
+    return this.http.get<Topic[]>(`${this.baseUrl}/topics`)
       .pipe(catchError(this.handleError));
   }
 
@@ -30,27 +30,26 @@ export class ApiService {
   }
 
   getCatalogById(id: number): Observable<Catalog> {
-    return this.http.get<Catalog[]>(`${this.baseUrl}/kataloge`)
+    return this.http.get<Catalog>(`${this.baseUrl}/kataloge/${id}`)
+      .pipe(catchError(this.handleError));
+  }
+
+  // Questions
+  getQuestionsByCatalog(catalogId: number): Observable<Question[]> {
+    return this.http.get<Question[]>(`${this.baseUrl}/fragen`)
       .pipe(
-        map(catalogs => catalogs.find(c => c.id === id)),
-        map(catalog => {
-          if (!catalog) {
-            throw new Error(`Catalog with id ${id} not found`);
+        map(questions => questions.filter(q => q.catalogId === catalogId)),
+        map(questions => {
+          if (questions.length === 0) {
+            throw new Error('Keine Fragen für diesen Katalog gefunden');
           }
-          return catalog;
+          return questions;
         }),
         catchError(this.handleError)
       );
   }
 
-  // Questions
-  getQuestionsByCatalog(catalogId: number): Observable<Question[]> {
-    return this.http.get<Question[]>(`${this.baseUrl}/fragen?catalogId=${catalogId}`)
-      .pipe(catchError(this.handleError));
-  }
-
   getQuestionById(id: number): Observable<Question> {
-    // Für Vercel müssen wir alle Fragen laden und dann filtern
     return this.http.get<Question[]>(`${this.baseUrl}/fragen`)
       .pipe(
         map(questions => questions.find(q => q.id === id)),
@@ -104,9 +103,9 @@ export class ApiService {
       };
     } else {
       apiError = {
-        message: error.message || 'Ein unbekannter Fehler ist aufgetreten.',
+        message: 'Ein unerwarteter Fehler ist aufgetreten.',
         type: 'unknown',
-        retryable: false
+        retryable: true
       };
     }
     
